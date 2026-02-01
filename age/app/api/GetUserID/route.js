@@ -6,7 +6,7 @@ export async function POST(request) {
   try {
     // Fetch Steam API
     const response = await fetch(
-      `http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_ID}&vanityurl=${steamUsername}`
+      `http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_API_KEY}&vanityurl=${steamUsername}`
     );
 
     // Save Data

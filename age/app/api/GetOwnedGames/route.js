@@ -6,7 +6,7 @@ export async function POST(request) {
   try {
     // Fetch Steam API
     const response = await fetch(
-      `http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.STEAM_ID}&steamid=${steamUserID}&include_appinfo=True&include_played_free_games=True`
+      `http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.STEAM_API_KEY}&steamid=${steamUserID}&include_appinfo=True&include_played_free_games=True`
     );
 
     // Save Data
