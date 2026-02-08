@@ -45,9 +45,9 @@ export default function Homepage() {
       // Game doesn't have achievements
     } else {
       if (userPlaytime < globalPlaytime && userPlaytime > 0) {
-        totalScore += (userPlaytime/globalPlaytime)*.45
+        totalScore += (userPlaytime/globalPlaytime)*.95
       } else if (userPlaytime >= globalPlaytime) {
-        totalScore += .475
+        totalScore += .95
       }
     }
 
