@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         
 
-      <nav className='flex flex-row justify-between p-4'>
+      <nav className='flex flex-row justify-between p-4 bg-indigo-950 fixed top-0 w-full'>
         <Link href="/">Abandoned Game Explorer</Link>
         <div className='flex flex-row justify-between gap-6'>
           <Link href="/">Home</Link>
