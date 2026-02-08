@@ -107,7 +107,11 @@ export default function Homepage() {
   }
 
   // Combine various game data into a single list of objects
-  async function CombineGameData(ownedGames: any, userAchievements: any, detailedGameData: any, recentlyPlayed: any) {
+  async function CombineGameData(ownedGames: any,
+    userAchievements: any,
+    detailedGameData: any,
+    recentlyPlayed: any) {
+      
     const combinedGameData = ownedGames.games.map((currentGame: any) => {
       // Game data details
       const matchDetailedGameData = detailedGameData.find((item:any) => item.appid === currentGame.appid)
@@ -120,8 +124,12 @@ export default function Homepage() {
 
       // Determine if game has been played within two weeks
       let isPlayedWithinTwoWeeks: boolean
-      if (recentlyPlayed.games.find((item:any) => item.appid === currentGame.appid)) {
-        isPlayedWithinTwoWeeks = true
+      if (recentlyPlayed.total_count > 0) {
+        if (recentlyPlayed?.games.find((item:any) => item.appid === currentGame.appid)) {
+          isPlayedWithinTwoWeeks = true
+        } else {
+          isPlayedWithinTwoWeeks = false
+        }
       } else {
         isPlayedWithinTwoWeeks = false
       }
@@ -271,30 +279,36 @@ export default function Homepage() {
 
           <div className='flex flex-col gap-5'>
             {/* Recently Played Games */}
-            {recentlyPlayedGames.total_count !== 0 && (
-              <div className='bg-blue-950 rounded-2xl'>
-                <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-                  <p className='text-3xl'>Recently Played</p>
-                  <p className="text-2xl">Played within the last two weeks</p>
-                </div>
-              <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
-                {userGameData.filter((a) => a.played_within_two_weeks == true).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
-                  <RepeatedCategories game={game} key={game.id}/>
-                ))}
+            <div className='bg-blue-950 rounded-2xl'>
+              <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                <p className='text-3xl'>Recently Played</p>
+                <p className="text-2xl">Played within the last two weeks</p>
               </div>
+            <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
+              {userGameData.filter((a) => a.played_within_two_weeks == true).length ? (
+                userGameData.filter((a) => a.played_within_two_weeks == true).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))
+              ) : (
+                <div>No games to display</div>
+              )}
             </div>
-            )}
+          </div>
 
             {/* 100% Score Games */}
             <div className='bg-blue-950 rounded-2xl'>
               <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
                 <p className='text-3xl'>High Score</p>
-                <p className="text-2xl">Games that score a 100%</p>
+                <p className="text-2xl">Games that score at least a 90%</p>
               </div>
               <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
-                {userGameData.filter((a) => a.score >= 90).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
-                  <RepeatedCategories game={game} key={game.id}/>
-                ))}
+                {userGameData.filter((a) => a.score >= 90).length ? (
+                  userGameData.filter((a) => a.score >= 90).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
+                    <RepeatedCategories game={game} key={game.id}/>
+                  ))
+                ) : (
+                  <div>No games to display</div>
+                )}
               </div>
             </div>
 
@@ -305,9 +319,13 @@ export default function Homepage() {
                 <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
               </div>
               <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-                {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a,b) => b.score - a.score).map((game:any) => (
-                  <RepeatedCategories game={game} key={game.id}/>
-                ))}
+                {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length ? (
+                  userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a,b) => b.score - a.score).map((game:any) => (
+                    <RepeatedCategories game={game} key={game.id}/>
+                  ))
+                ) : (
+                  <div>No games to display :(</div>
+                )}
               </div>
             </div>
 
@@ -318,9 +336,13 @@ export default function Homepage() {
                 <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
               </div>
               <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-                {userGameData.sort((a,b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
-                  <RepeatedCategories game={game} key={game.id}/>
-                ))}
+                {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
+                  userGameData.sort((a,b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
+                    <RepeatedCategories game={game} key={game.id}/>
+                  ))
+                ) : (
+                  <div>No games to display</div>
+                )}
               </div>
             </div>
 
@@ -330,10 +352,14 @@ export default function Homepage() {
                 <p className='text-3xl'>All your games!</p>
                 <p className="text-2xl">Hey</p>
               </div>
-              <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-                {userGameData.map((game: any) => (
-                  <RepeatedCategories game={game} key={game.id}/>
-                ))}
+              <div className="grid grid-cols-4 max-h-150 overflow-y-scroll space-y-8 m-2 gap-5">
+                {userGameData.length ? (
+                  userGameData.map((game: any) => (
+                    <RepeatedCategories game={game} key={game.id}/>
+                  ))
+                ) : (
+                  <div>No games to display</div>
+                )}
               </div>
             </div>
           </div>
