@@ -18,7 +18,7 @@ export default function HomePage() {
       body: JSON.stringify({username:steamUsername})
     })
     const steamid = await tempUserID.json()
-    router.push(`AccountDetails/?steamid=${steamid}`)
+    router.push(`accountdetails/?steamid=${steamid}`)
   }
 
   return (

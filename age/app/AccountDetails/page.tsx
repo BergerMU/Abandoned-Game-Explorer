@@ -4,15 +4,20 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
-export default function Temp() {
+export default function Homepage() {
+  // Page Variables
   const router = useRouter()
+  const [accountDataLoading, setAccountDataLoading] = useState(true)
+  const [gameDataLoading, setGameDataLoading] = useState(true)
 
+  // Account Variables
   const searchParams = useSearchParams()
   let [steamid, setSteamid] = useState(searchParams.get('steamid'))
   // let [userSummary, setUserSummary] = useState<any>(null)
   let [userSummary, setUserSummary] = useState<any>(null)
   let [accountScore, setAccountScore] = useState(0)
 
+  // Game Variables
   type Game = {score: number,
     percent_of_achievements: number,
     playtime_forever: number,
@@ -177,10 +182,16 @@ export default function Temp() {
       router.push("/")
       return
     }
+
     const FetchAllData = async () => {
+      setAccountDataLoading(true)
       await GetUserDetails(steamid)
+      setAccountDataLoading(false)
+
+      setGameDataLoading(true)
       const { ownedGames, userAchievements, detailedGameData, recentlyPlayed } = await FetchSteamGames(steamid)
       await CombineGameData(ownedGames, userAchievements, detailedGameData, recentlyPlayed)
+      setGameDataLoading(false)
     }
 
     FetchAllData()
@@ -227,13 +238,6 @@ export default function Temp() {
         ) : (
           <p>No Unlockable Achievements</p>
         )}
-
-        <br/>
-        {game.played_within_two_weeks ? (
-          <p>Played Recently</p>
-        ) : (
-          <p>Not Played Recently</p>
-        )}
         <br/>
       </div>
     )
@@ -241,89 +245,100 @@ export default function Temp() {
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start">
-      {userSummary ? (
-        <div>
-          <img src={userSummary.avatarfull}></img>
-          <b>{userSummary.personaname}</b>
-          <p>Account Score: {accountScore}</p>
-          <progress max="100" value={accountScore}>{accountScore}</progress>
-          
-          <p>Steam ID: {steamid}</p>
-          <p>User State: {userSummary.personastate}</p>
-          <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
-          <p>Total Games: {userGameData.length}</p>
+      {accountDataLoading ? (
+        <div className='flex flex-row space-x-6'>
+          <p className='text-2xl'>Loading User Information</p>
+          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
+        </div>
+      ) : gameDataLoading ? (
+        <div className='flex flex-row space-x-6'>
+          <p className='text-2xl'>Loading Game Data</p>
+          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
       ) : (
-        <p>User information loading...</p>
+        <div>
+          <div>
+            <img src={userSummary.avatarfull}></img>
+            <b>{userSummary.personaname}</b>
+            <p>Account Score: {accountScore}</p>
+            <progress max="100" value={accountScore}>{accountScore}</progress>
+            
+            <p>Steam ID: {steamid}</p>
+            <p>User State: {userSummary.personastate}</p>
+            <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
+            <p>Total Games: {userGameData.length}</p>
+          </div>
+
+          <div className='flex flex-col gap-5'>
+            {/* Recently Played Games */}
+            {recentlyPlayedGames.total_count !== 0 && (
+              <div className='bg-blue-950 rounded-2xl'>
+                <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                  <p className='text-3xl'>Recently Played</p>
+                  <p className="text-2xl">Played within the last two weeks</p>
+                </div>
+              <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
+                {userGameData.filter((a) => a.played_within_two_weeks == true).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))}
+              </div>
+            </div>
+            )}
+
+            {/* 100% Score Games */}
+            <div className='bg-blue-950 rounded-2xl'>
+              <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                <p className='text-3xl'>High Score</p>
+                <p className="text-2xl">Games that score a 100%</p>
+              </div>
+              <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
+                {userGameData.filter((a) => a.score >= 90).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))}
+              </div>
+            </div>
+
+            {/* Games with least achievements */}
+            <div className='bg-blue-950 rounded-2xl'>
+              <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                <p className='text-3xl'>Almost Complete!</p>
+                <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
+              </div>
+              <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
+                {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a,b) => b.score - a.score).map((game:any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))}
+              </div>
+            </div>
+
+            {/* Games that haven't been played */}
+            <div className='bg-blue-950 rounded-2xl'>
+              <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                <p className='text-3xl'>not played:(</p>
+                <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
+              </div>
+              <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
+                {userGameData.sort((a,b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))}
+              </div>
+            </div>
+
+            {/* All Games */}
+            <div className='bg-blue-950 rounded-2xl'>
+              <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
+                <p className='text-3xl'>All your games!</p>
+                <p className="text-2xl">Hey</p>
+              </div>
+              <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
+                {userGameData.map((game: any) => (
+                  <RepeatedCategories game={game} key={game.id}/>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-
-      <div className='flex flex-col gap-5'>
-        {/* Recently Played Games */}
-        {recentlyPlayedGames.total_count !== 0 && (
-          <div className='bg-blue-950 rounded-2xl'>
-          <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-            <p className='text-3xl'>Recently Played</p>
-            <p className="text-2xl">Played within the last two weeks</p>
-          </div>
-          <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
-          {userGameData.filter((a) => a.played_within_two_weeks == true).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
-              <RepeatedCategories game={game} key={game.id}/>
-            ))}
-          </div>
-        </div>
-        )}
-
-        {/* 100% Score Games */}
-        <div className='bg-blue-950 rounded-2xl'>
-          <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-            <p className='text-3xl'>High Score</p>
-            <p className="text-2xl">Games that score a 100%</p>
-          </div>
-          <div className="grid grid-cols-4 max-h-80 overflow-y-scroll space-y-8 m-2">
-          {userGameData.filter((a) => a.score >= 90).sort((a,b) => b.playtime_forever - a.playtime_forever).map((game:any) => (
-              <RepeatedCategories game={game} key={game.id}/>
-            ))}
-          </div>
-        </div>
-
-        {/* Games with least achievements */}
-        <div className='bg-blue-950 rounded-2xl'>
-          <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-            <p className='text-3xl'>Almost Complete!</p>
-            <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
-          </div>
-          <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-          {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a,b) => b.score - a.score).map((game:any) => (
-              <RepeatedCategories game={game} key={game.id}/>
-            ))}
-          </div>
-        </div>
-
-        {/* Games that haven't been played */}
-        <div className='bg-blue-950 rounded-2xl'>
-          <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-            <p className='text-3xl'>not played:(</p>
-            <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
-          </div>
-          <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-            {userGameData.sort((a,b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
-              <RepeatedCategories game={game} key={game.id}/>
-            ))}
-          </div>
-        </div>
-
-        <div className='bg-blue-950 rounded-2xl'>
-          <div className="flex flex-row justify-between p-3 bg-fuchsia-950 rounded-2xl">
-            <p className='text-3xl'>All your games!</p>
-            <p className="text-2xl">Hey</p>
-          </div>
-          <div className="grid grid-cols-4 max-h-70 overflow-y-scroll space-y-8 m-2">
-            {userGameData.map((game: any) => (
-              <RepeatedCategories game={game} key={game.id}/>
-            ))}
-          </div>
-        </div>
-      </div>
     </main>
   )
 }
