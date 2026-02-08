@@ -1,3 +1,5 @@
+import { BrowserRouter } from 'react-router-dom';
+import Link from 'next/link'
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -24,11 +26,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        
+
+      <nav className='flex flex-row justify-between p-4'>
+        <Link href="/">Abandoned Game Explorer</Link>
+        <div className='flex flex-row justify-between gap-6'>
+          <Link href="/">Home</Link>
+          <Link href="/">Learn More</Link>
+          <Link href="/">About Us</Link>
+        </div>
+      </nav>
         {children}
       </body>
     </html>
-  );
+  )
 }
