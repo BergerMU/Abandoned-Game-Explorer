@@ -22,15 +22,16 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen font-sans">
-      <main className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start">
-        <form onSubmit={HandleSubmit}>
-          <p>Please Enter Your Steam Username (Capitalization does matter)</p>
-          <input placeholder="Enter your Steam Account Name" onChange={e => setSteamUserName(e.target.value)} value={steamUsername} className="w-full bg-transparent placeholder:text-slate-400 text-slate-200 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"></input>
-          <button type='submit'>Search Account</button>
-        </form>
-        <br/>
-      </main>
+    <div className="flex flex-row min-h-screen justify-center items-center">
+      <form onSubmit={HandleSubmit} className='flex flex-row space-x-3'>
+        <p>Please Enter Your Steam Username (Capitalization does matter)</p>
+        <input placeholder="Enter your Steam Account Name" onChange={e => setSteamUserName(e.target.value)} className="w-3xl p-3 h-3xl outline-1 outline-black rounded-2xl bg-sky-950" value={steamUsername}></input>
+        <button type='submit' className="bg-sky-800 p-3 rounded-3xl cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+          </svg>
+        </button>
+      </form>
     </div>
   )
 }

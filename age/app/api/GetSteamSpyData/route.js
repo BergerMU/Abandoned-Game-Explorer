@@ -11,6 +11,7 @@ export async function POST(request) {
     formattedIDs.push(game.appid);
   };
 
+  const startTime = performance.now()
   while (formattedIDs.length > 0) {
     const response = await fetch(`https://steamspy.com/api.php?request=appdetails&appid=${formattedIDs[0]}`);
 
@@ -19,6 +20,8 @@ export async function POST(request) {
     steamSpyGameData.push(data);
     formattedIDs.splice(0, 1);
   }
+  const endTime = performance.now()
+  console.log("getting all detailed game data took: ", ((endTime-startTime)/1000).toFixed(4), " seconds")
 
   return NextResponse.json(steamSpyGameData);
 }
