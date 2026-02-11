@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 // Steam Game Cover Function
 export async function POST(request) {
-  const { gameData:games } = await request.json();
-  let steamSpyGameData = [];
+  const { gameData: games } = await request.json();
+  const savedBatchResults = [];
 
   // Format appids
   let formattedIDs = [];
@@ -11,17 +11,53 @@ export async function POST(request) {
     formattedIDs.push(game.appid);
   };
 
-  const startTime = performance.now()
-  while (formattedIDs.length > 0) {
-    const response = await fetch(`https://steamspy.com/api.php?request=appdetails&appid=${formattedIDs[0]}`);
+  // Batch an array into subarrays with even amoutns of data
+  const chunkArray = (array, chunkSize) => {
+    const numberOfChunks = Math.ceil(array.length / chunkSize)
 
-    // Save Data
-    const data = await response.json();
-    steamSpyGameData.push(data);
-    formattedIDs.splice(0, 1);
+    return [...Array(numberOfChunks)]
+      .map((value, index) => {
+        return array.slice(index * chunkSize, (index + 1) * chunkSize)
+      })
   }
-  const endTime = performance.now()
-  console.log("getting all detailed game data took: ", ((endTime-startTime)/1000).toFixed(4), " seconds")
+  const batchedIDs = chunkArray(formattedIDs, 50);
 
-  return NextResponse.json(steamSpyGameData);
+  // Gets the api request itself
+  async function callApi(param, apiNumber) {
+    try {
+      const response = await fetch(`https://steamspy.com/api.php?request=appdetails&appid=${param}`);
+      if (!response.ok) {
+        throw new Error(`API ${apiNumber} request failed`);
+      }
+
+      // Save data
+      const data = await response.json();
+      return data;
+
+      // Output error
+    } catch (error) {
+      console.error(`Error in API ${apiNumber}: `, error);
+      return { error: "Failed to fetch Steam data", status: 500 };
+    }
+  }
+
+  // Runs each batch using the callAPI function
+  for (const batch of batchedIDs) {
+    const promises = batch.map((param, index) => callApi(param, index + 1));
+
+    // Save results
+    try {
+      const results = await Promise.all(promises);
+      savedBatchResults.push(...results);
+
+      // Output error
+    } catch (error) {
+      console.error("Error during fetching: ", error);
+      return NextResponse.json(
+        { error: "Failed to fetch Steam data", status: 500 }
+      );
+    }
+  }
+
+  return NextResponse.json(savedBatchResults);
 }

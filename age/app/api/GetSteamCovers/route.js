@@ -11,8 +11,11 @@ export async function POST(request) {
     formattedIDs.push(game.appid);
   };
 
+  // Copy of list of appids
+  const formattedIDsCopy = [...formattedIDs];
+
   while (formattedIDs.length > 0) {
-    const first100 = formattedIDs.slice(0, 100);
+    const first100 = formattedIDs.slice(0, 50);
       const response = await fetch(
         `https://www.steamgriddb.com/api/v2/grids/steam/${first100}`,
         {
@@ -24,12 +27,14 @@ export async function POST(request) {
 
     // Save Data
     const data = await response.json();
-    gameCoverData.push(...Object.values(data.data || {}));
-    formattedIDs.splice(0, 100);
+    gameCoverData.push(...data.data || {})
+
+    formattedIDs.splice(0, 50);
   }
 
+  // AI assisted in the combination of the appid being attached
   const coverURLs = gameCoverData.map((obj, index) => ({
-    appid: formattedIDs[index] ?? "No Appid",
+    appid: formattedIDsCopy[index],
     url: obj.data?.[0]?.url ?? "No Cover"
   }));
 
