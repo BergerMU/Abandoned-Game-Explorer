@@ -202,9 +202,9 @@ export default function Homepage() {
             </div>
           </div>
         )}
-        <p>Total Score: {game.score}</p>
 
         <div className="group relative inline-block cursor-pointer w-full">
+          <p>Total Score: {game.score}</p>
           <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
           <div className="invisible absolute shadow-xs bg-slate-700 rounded-2xl group-hover:visible group-hover:delay-500 p-2">
             <div>
@@ -227,7 +227,7 @@ export default function Homepage() {
         ) : (
           <p>Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
         )}
-        <br/>
+        <br />
         {game.total_achievements ? (
           <div>
             <p>{game.percent_of_achievements}% Achievements Unlocked</p>
@@ -274,29 +274,46 @@ export default function Homepage() {
         </div>
       ) : (
         <div>
-          <div>
-            <b className="text-3xl">{userSummary.personaname}</b>
-            <img src={userSummary.avatarfull}></img>
-            <p className='text-2xl'>Account Score: {accountScore}</p>
+          {/* Heaader User Section */}
+          <div className='flex flex-row justify-between align-top'>
+            {/* Account Information */}
+            <div className='flex flex-col p-2'>
+              <p className="text-4xl text-center mb-2">{userSummary.personaname}</p>
 
-            <div className="group relative inline-block cursor-pointer w-45">
-              <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
-              <div className="invisible absolute shadow-xs bg-slate-700 rounded-2xl group-hover:visible group-hover:delay-500 p-2">
-                <div>
-                  <b>Account Scoring</b>
-                  <p>Your Account Score is the average score accross all of your games</p>
+              <div className='flex flex-row space-x-10'>
+                <img src={userSummary.avatarfull}></img>
+                <div className="flex flex-col">
+                  <div className="group relative inline-block cursor-pointer w-50">
+                    <p className='text-2xl'>Account Score: {accountScore}</p>
+                    <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
+                    <div className="invisible absolute shadow-xs bg-slate-700 rounded-2xl group-hover:visible group-hover:delay-500 p-2">
+                      <div>
+                        <b>Account Scoring</b>
+                        <p>Your Account Score is the average score accross all of your games</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* If user is offline, busy, away, snoozed */}
+                  {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
+                    <p>Offline</p>
+                  ) : (
+                    <p>Online</p>
+                  )}
+                  <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
                 </div>
               </div>
+
             </div>
-
-            {/* If user is offline, busy, away, snoozed */}
-            {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-              <p>Offline</p>
-            ) : (
-              <p>Online</p>
-            )}
-
-            <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
+            <div className='flex flex-col p-2 w-150 text-right'>
+              <b className="text-3xl">Scoring</b>
+              <ul className='space-y-5'>
+                <li>Game scores are based on playtime and achievements</li>
+                <li>One half of a games score is earned if your playtime is more than the global average playtime</li>
+                <li>The other half of a games score is earned by completing all achievements</li>
+                <li>Your account score is the average game score across all of your games</li>
+              </ul>
+            </div>
           </div>
 
           <div className='flex flex-col gap-10'>
@@ -306,9 +323,9 @@ export default function Homepage() {
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>Recently Played</b>
                   <p className="text-2xl">Played within the last two weeks</p>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.played_within_two_weeks == true).length} Games</div>
+                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.played_within_two_weeks == true).length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} value={searchRecentlyPlayed}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} value={searchRecentlyPlayed} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
                 {userGameData.filter((a) => a.played_within_two_weeks == true).length ? (
@@ -316,7 +333,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
-                  <div>No games to display</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>
@@ -327,9 +344,9 @@ export default function Homepage() {
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>not played:(</b>
                   <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
-                  <div className="text-2xl mb-2">{userGameData.filter(a => a.playtime_forever === 0).length} Games</div>
+                  <p className="text-2xl mb-2">{userGameData.filter(a => a.playtime_forever === 0).length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} value={searchNotPlayed}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} value={searchNotPlayed} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
@@ -337,30 +354,31 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
-                  <div>No games to display</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>
 
-            {/* Continue playing */}
+            {/* Games with less than 10 minutes of playtime */}
             <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-2xl'>
               <div className="flex flex-row justify-between">
                 <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>Continue Playing</b>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30)).length} Games</div>
+                  <b className='text-3xl'>Bearly Touched</b>
+                  <p className="text-2xl">Less than 10 minutes of playtime</p>
+                  <p>See if these games qualify to get refunded!</p>
+                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10).length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} value={searchContinuePlaying}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} value={searchContinuePlaying} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
-                {userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30)).length ? (
-                  userGameData.filter(a => a.name.toLowerCase()
-                  .includes(searchContinuePlaying.toLowerCase()))
-                  .filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30))
-                  .sort((a, b) => b.global_median_playtime - a.global_median_playtime).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
-                  ))
+                {userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10).length ? (
+                  userGameData.filter(a => a.name.toLowerCase().includes(searchContinuePlaying.toLowerCase()))
+                    .filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)
+                    .sort((a, b) => b.global_median_playtime - a.global_median_playtime).map((game: any) => (
+                      <RepeatedCategories game={game} key={game.id} />
+                    ))
                 ) : (
-                  <div>No games to display</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>
@@ -371,9 +389,9 @@ export default function Homepage() {
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>Almost Complete!</b>
                   <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length} Games</div>
+                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} value={searchAlmostComplete}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} value={searchAlmostComplete} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length ? (
@@ -381,7 +399,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
-                  <div>No games to display :(</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>
@@ -392,9 +410,9 @@ export default function Homepage() {
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>High Score</b>
                   <p className="text-2xl">Games that score at least a 100%</p>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.score == 100).length} Games</div>
+                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.score == 100).length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} value={searchHighScore}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} value={searchHighScore} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter((a) => a.score == 100).length ? (
@@ -402,7 +420,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.appid} />
                   ))
                 ) : (
-                  <div>No games to display</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>
@@ -412,9 +430,9 @@ export default function Homepage() {
               <div className="flex flex-row justify-between">
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>All your games!</b>
-                  <div className="text-2xl mb-2">{userGameData.length} Games</div>
+                  <p className="text-2xl mb-2">{userGameData.length} Games</p>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} value={searchAllGames}/>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} value={searchAllGames} />
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.length ? (
@@ -422,7 +440,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
-                  <div>No games to display</div>
+                  <p>No games to display</p>
                 )}
               </div>
             </div>

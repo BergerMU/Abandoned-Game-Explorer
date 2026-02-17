@@ -15,6 +15,7 @@ export default function HomePage() {
     event.preventDefault()
     let parsedUserInput = ""
     setLoading(true)
+    setSearchError("")
 
     // Parse steam accounts with ID in their url for their username or steamid
     if (userInput.includes("steamcommunity.com/id/")) {
@@ -75,7 +76,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen justify-center items-center">
+    <div className="flex flex-col min-h-screen justify-center items-center space-y-5">
+      <p className="text-5xl">Explore your steam library!</p>
+      <p>How to do it in 3 easy steps!</p>
+      <p>1. Go to your steam profile and copy the URL</p>
+      <p>2. Paste your account url in the search bar</p>
+      <p>3. Hit enter</p>
       {/* Search Form */}
       <div className="flex flex-row">
         <form onSubmit={HandleSubmit} className='flex flex-row space-x-3'>
@@ -92,7 +98,7 @@ export default function HomePage() {
       {/* Error Messages */}
       {loading ? (
         <div className='flex flex-row space-x-6'>
-          <div className='text-2xl'>Loading Account Info</div>
+          <p className='text-2xl'>Loading Account Info</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
       ) : (
@@ -100,7 +106,6 @@ export default function HomePage() {
           {searchError}
         </div>
       )}
-      
     </div>
   )
 }

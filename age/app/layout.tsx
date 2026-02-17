@@ -1,16 +1,11 @@
 import { BrowserRouter } from 'react-router-dom';
 import Link from 'next/link'
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Funnel_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const font = Funnel_Sans({
+  weight: '500',
   subsets: ["latin"],
 });
 
@@ -26,8 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        
+      <body className={`${font.className} antialiased`}>
 
       <nav className='flex z-50 flex-row justify-between p-4 bg-zinc-800 fixed top-0 w-full'>
         <Link href="/">Abandoned Game Explorer</Link>
