@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Steam Game Cover Function
 export async function POST(request) {
-  const { gameData:games } = await request.json();
+  const { gameData: games } = await request.json();
   let gameCoverData = [];
 
   // Format appids
@@ -14,24 +14,34 @@ export async function POST(request) {
   // Copy of list of appids
   const formattedIDsCopy = [...formattedIDs];
 
-  while (formattedIDs.length > 0) {
-    const first100 = formattedIDs.slice(0, 50);
+  try {
+    while (formattedIDs.length > 0) {
+      const first100 = formattedIDs.slice(0, 50);
       const response = await fetch(
         `https://www.steamgriddb.com/api/v2/grids/steam/${first100}`,
         {
           headers: {
-          'Authorization': `Bearer ${process.env.STEAM_GRID_API_KEY}`
+            'Authorization': `Bearer ${process.env.STEAM_GRID_API_KEY}`
+          }
         }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Get Steam Covers Status Error: ${response.status}`);
       }
-    );
 
-    // Save Data
-    const data = await response.json();
-    gameCoverData.push(...data.data || {})
+      // Save Data
+      const data = await response.json();
+      gameCoverData.push(...data.data || {})
 
-    formattedIDs.splice(0, 50);
+      formattedIDs.splice(0, 50);
+    }
+  } catch (e) {
+    console.error("Get Steam Covers Error: ", e.message)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 
+  // Create new object with appid and game cover url pairs
   // AI assisted in the combination of the appid being attached
   const coverURLs = gameCoverData.map((obj, index) => ({
     appid: formattedIDsCopy[index],

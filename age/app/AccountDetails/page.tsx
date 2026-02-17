@@ -196,7 +196,7 @@ export default function Homepage() {
         {game.game_cover != "No Cover" ? (
           <img className='flex h-75 w-auto object-contain rounded-2xl' src={game.game_cover} />
         ) : (
-          <div className='relative flex h-75 w-55 overflow-hidden bg-linear-to-tl from-slate-800 to-slate-700 rounded-2xl'>
+          <div className='relative flex h-75 w-full overflow-hidden bg-linear-to-tl from-slate-800 to-slate-700 rounded-2xl'>
             <div className='absolute font-bold inset-[-50%] h-70 w-95 rotate-345 bg-repeat-x text-slate-600 cursor-default'>
               {Array(90).fill(game.name + " ")}
             </div>
@@ -209,49 +209,32 @@ export default function Homepage() {
           <div className="invisible absolute shadow-xs bg-slate-700 rounded-2xl group-hover:visible group-hover:delay-500 p-2">
             <div>
               <b>Scoring</b>
-              <p>+50 Percent if playtime more than global average</p>
+              <p>+50% if playtime more than global average</p>
               <br />
-              <p>+50 Percent if all achievements are unlocked</p>
+              <p>+50% if all achievements are unlocked</p>
             </div>
           </div>
         </div>
 
 
         {game.playtime_forever / 60 < 1 ? (
-          <p>Playtime: {game.playtime_forever} minutes</p>
+          <p>Total Playtime: {game.playtime_forever} minutes</p>
         ) : (
-          <p>Playtime: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+          <p>Total Playtime: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
         )}
         {game.global_median_playtime / 60 < 1 ? (
           <p>Global Playtime: {game.global_median_playtime % 60} minutes </p>
         ) : (
           <p>Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
         )}
-        <b>Achievements</b>
+        <br/>
         {game.total_achievements ? (
           <div>
-            {game.unlocked_achievements_array == 0 ? (
-              <div>
-                <p>0% Unlocked</p>
-              </div>
-            ) : (
-              <div>
-                <div></div>
-                <p>{game.percent_of_achievements}% Unlocked</p>
-              </div>
-            )}
-            <p>Total Achievements: {game.total_achievements}</p>
-            <p>Unlocked Achievements: {game.unlocked_achievements_count}</p>
+            <p>{game.percent_of_achievements}% Achievements Unlocked</p>
           </div>
         ) : (
           <p>No Unlockable Achievements</p>
         )}
-        <br/>
-        <b>Genres</b>
-        {game.genres ?? (
-          <div>{game.genres}</div>
-        )}
-        <br />
       </div>
     )
   }
@@ -297,7 +280,7 @@ export default function Homepage() {
             <p className='text-2xl'>Account Score: {accountScore}</p>
 
             <div className="group relative inline-block cursor-pointer w-45">
-              <progress max="100" value={accountScore} className='flex w-full'>{accountScore}</progress>
+              <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
               <div className="invisible absolute shadow-xs bg-slate-700 rounded-2xl group-hover:visible group-hover:delay-500 p-2">
                 <div>
                   <b>Account Scoring</b>
@@ -325,11 +308,32 @@ export default function Homepage() {
                   <p className="text-2xl">Played within the last two weeks</p>
                   <div className='text-2xl mb-2'>{userGameData.filter((a) => a.played_within_two_weeks == true).length} Games</div>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} />
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} value={searchRecentlyPlayed}/>
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
                 {userGameData.filter((a) => a.played_within_two_weeks == true).length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchRecentlyPlayed.toLowerCase())).filter((a) => a.played_within_two_weeks == true).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
+                    <RepeatedCategories game={game} key={game.id} />
+                  ))
+                ) : (
+                  <div>No games to display</div>
+                )}
+              </div>
+            </div>
+
+            {/* Games that haven't been played */}
+            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-2xl'>
+              <div className="flex flex-row justify-between">
+                <div className='flex flex-col mb-2 gap-2'>
+                  <b className='text-3xl'>not played:(</b>
+                  <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
+                  <div className="text-2xl mb-2">{userGameData.filter(a => a.playtime_forever === 0).length} Games</div>
+                </div>
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} value={searchNotPlayed}/>
+              </div>
+              <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
+                {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
+                  userGameData.filter(a => a.name.toLowerCase().includes(searchNotPlayed.toLowerCase())).sort((a, b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
@@ -343,35 +347,17 @@ export default function Homepage() {
               <div className="flex flex-row justify-between">
                 <div className='flex flex-col mb-2 gap-2'>
                   <b className='text-3xl'>Continue Playing</b>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.playtime_forever > (a.global_median_playtime * 0.15) && a.playtime_forever < (a.global_median_playtime * 0.60)).length} Games</div>
+                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30)).length} Games</div>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} />
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} value={searchContinuePlaying}/>
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
                 {userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30)).length ? (
-                  userGameData.filter((a) => a.playtime_forever > (a.global_median_playtime * 0.15) && a.playtime_forever < (a.global_median_playtime * 0.60)).filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30)).sort((a, b) => b.global_median_playtime - a.global_median_playtime).map((game: any) => (
+                  userGameData.filter(a => a.name.toLowerCase()
+                  .includes(searchContinuePlaying.toLowerCase()))
+                  .filter((a) => a.playtime_forever > 0 && a.playtime_forever < (a.global_median_playtime * 0.30))
+                  .sort((a, b) => b.global_median_playtime - a.global_median_playtime).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />
-                  ))
-                ) : (
-                  <div>No games to display</div>
-                )}
-              </div>
-            </div>
-
-            {/* 100% Score Games */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-2xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>High Score</b>
-                  <p className="text-2xl">Games that score at least a 100%</p>
-                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.score == 100).length} Games</div>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.filter((a) => a.score == 100).length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchHighScore.toLowerCase())).filter((a) => a.score == 100).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.appid} />
                   ))
                 ) : (
                   <div>No games to display</div>
@@ -387,7 +373,7 @@ export default function Homepage() {
                   <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
                   <div className='text-2xl mb-2'>{userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length} Games</div>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} />
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} value={searchAlmostComplete}/>
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length ? (
@@ -400,20 +386,20 @@ export default function Homepage() {
               </div>
             </div>
 
-            {/* Games that haven't been played */}
+            {/* 100% Score Games */}
             <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-2xl'>
               <div className="flex flex-row justify-between">
                 <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>not played:(</b>
-                  <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
-                  <div className="text-2xl mb-2">{userGameData.filter(a => a.playtime_forever === 0).length} Games</div>
+                  <b className='text-3xl'>High Score</b>
+                  <p className="text-2xl">Games that score at least a 100%</p>
+                  <div className='text-2xl mb-2'>{userGameData.filter((a) => a.score == 100).length} Games</div>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} />
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} value={searchHighScore}/>
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchNotPlayed.toLowerCase())).sort((a, b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
+                {userGameData.filter((a) => a.score == 100).length ? (
+                  userGameData.filter(a => a.name.toLowerCase().includes(searchHighScore.toLowerCase())).filter((a) => a.score == 100).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
+                    <RepeatedCategories game={game} key={game.appid} />
                   ))
                 ) : (
                   <div>No games to display</div>
@@ -428,7 +414,7 @@ export default function Homepage() {
                   <b className='text-3xl'>All your games!</b>
                   <div className="text-2xl mb-2">{userGameData.length} Games</div>
                 </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} />
+                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-2xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} value={searchAllGames}/>
               </div>
               <div className="grid grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.length ? (

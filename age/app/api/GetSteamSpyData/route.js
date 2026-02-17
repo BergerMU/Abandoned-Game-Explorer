@@ -30,33 +30,26 @@ export async function POST(request) {
         throw new Error(`API ${apiNumber} request failed`);
       }
 
+      if (!response.ok) {
+        throw new Error(`Get Steam Spy Status Error: ${response.status}`);
+      }
+
       // Save data
       const data = await response.json();
       return data;
 
       // Output error
-    } catch (error) {
-      console.error(`Error in API ${apiNumber}: `, error);
-      return { error: "Failed to fetch Steam data", status: 500 };
+    } catch (e) {
+      console.error(`Steam Spy Error ${apiNumber}: `, e.message);
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
   }
 
   // Runs each batch using the callAPI function
   for (const batch of batchedIDs) {
     const promises = batch.map((param, index) => callApi(param, index + 1));
-
-    // Save results
-    try {
-      const results = await Promise.all(promises);
-      savedBatchResults.push(...results);
-
-      // Output error
-    } catch (error) {
-      console.error("Error during fetching: ", error);
-      return NextResponse.json(
-        { error: "Failed to fetch Steam data", status: 500 }
-      );
-    }
+    const results = await Promise.all(promises);
+    savedBatchResults.push(...results);
   }
 
   return NextResponse.json(savedBatchResults);

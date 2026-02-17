@@ -18,12 +18,17 @@ export async function POST(request) {
       `https://api.steampowered.com/IPlayerService/GetTopAchievementsForGames/v1/?key=${process.env.STEAM_API_KEY}&steamid=${steamUserID}&language=en&max_achievements=10000${formattedGames}`
     );
 
+    if (!response.ok) {
+      throw new Error(`Get Player Achievements Status Error: ${response.status}`);
+    }
+
     // Save Data
     const data = await response.json();
     return NextResponse.json(data.response.games);
-    
+
     // Catch errors
-  } catch (error) {
-    console.error("API Error:", error.message);
+  } catch (e) {
+    console.error("Get Player Achievements Error:", e.message);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

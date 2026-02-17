@@ -9,12 +9,17 @@ export async function POST(request) {
       `http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_API_KEY}&vanityurl=${steamUsername}`
     );
 
+    if (!response.ok) {
+      throw new Error(`Get UserID Status Error: ${response.status}`);
+    }
+
     // Save Data
     const data = await response.json();
     return NextResponse.json(data.response.steamid);
 
     // Catch errors
-  } catch (error) {
-    console.error("API Error:", error.message);
+  } catch (e) {
+    console.error("Get UserID Error:", e.message);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

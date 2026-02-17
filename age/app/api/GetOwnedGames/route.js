@@ -9,12 +9,17 @@ export async function POST(request) {
       `http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.STEAM_API_KEY}&steamid=${steamUserID}&include_appinfo=True&include_played_free_games=True`
     );
 
+    if (!response.ok) {
+      throw new Error(`Get Owned Games Status Error: ${response.status}`);
+    }
+
     // Save Data
     const data = await response.json();
     return NextResponse.json(data.response);
-    
+
     // Catch errors
-  } catch (error) {
-    console.error("API Error:", error.message);
+  } catch (e) {
+    console.error("Get Owned Games Error:", e.message);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
