@@ -2,6 +2,7 @@ export default function Homepage() {
     return (
         <div className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start gap-5">
             <div>
+                <div className='text-3xl'>What's going on????</div>
                 <div className='text-3xl'>Uhhhhh i forgot</div>
             </div>
 
