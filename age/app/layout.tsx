@@ -1,4 +1,4 @@
-import { BrowserRouter } from 'react-router-dom';
+import { Analytics } from "@vercel/analytics/next"
 import Link from 'next/link'
 import type { Metadata } from "next";
 import { Funnel_Sans } from "next/font/google";
