@@ -72,6 +72,10 @@ export default function Homepage() {
     const ownedGames = await tempOwnedGames.json()
     console.log("User Owned Games: ", ownedGames)
 
+    if (ownedGames.error) {
+      router.push("/")
+    }
+
     // Fetch in depth data from steam spy
     const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
       method: "POST",

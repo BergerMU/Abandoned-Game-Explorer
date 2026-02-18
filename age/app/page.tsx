@@ -63,7 +63,7 @@ export default function HomePage() {
         // Route to account details page
         setLoading(false)
         console.log(tempUserSummary)
-        router.push(`AccountDetails/?steamid=${parsedUserInput}`)
+        router.push(`accountdetails/?steamid=${parsedUserInput}`)
       }
 
       // input IS a valid username
@@ -71,7 +71,7 @@ export default function HomePage() {
       // Route to account details page
       setLoading(false)
       const userID = await tempUserID.json()
-      router.push(`AccountDetails/?steamid=${userID}`)
+      router.push(`accountdetails/?steamid=${userID}`)
     }
   }
 
