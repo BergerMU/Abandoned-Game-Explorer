@@ -14,7 +14,7 @@ export default function Homepage() {
 
   // Account Variables
   const searchParams = useSearchParams()
-  let [steamid, setSteamid] = useState(searchParams.get('steamid'))
+  const [steamid, setSteamid] = useState<string | null>(null)
   let [userSummary, setUserSummary] = useState<any>(null)
   let [accountScore, setAccountScore] = useState(0)
 
@@ -245,10 +245,15 @@ export default function Homepage() {
     )
   }
 
-  // Run various functions at the start of the page loading
+  // Get steamid from url
+  useEffect(() => {
+    const id = searchParams.get("steamid")
+    setSteamid(id)
+  }, [searchParams])
+
+  // Fetch user data
   useEffect(() => {
     if (!steamid) {
-      router.push("/")
       return
     }
 
@@ -264,7 +269,7 @@ export default function Homepage() {
     }
 
     FetchAllData()
-  }, [])
+  }, [steamid])
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start">
