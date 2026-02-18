@@ -326,6 +326,7 @@ export default function Homepage() {
           </div>
 
           <div className='flex flex-col gap-10'>
+            <p className="text-2xl">Go give yo games some love</p>
             {/* Recently Played Games */}
             <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-2xl'>
               <div className="flex flex-row justify-between">
@@ -429,7 +430,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.appid} />
                   ))
                 ) : (
-                  <p>No games to display</p>
+                  <p>No games to display :(((</p>
                 )}
               </div>
             </div>
@@ -449,7 +450,7 @@ export default function Homepage() {
                     <RepeatedCategories game={game} key={game.id} />
                   ))
                 ) : (
-                  <p>No games to display</p>
+                  <p>No games to display, get more games!</p>
                 )}
               </div>
             </div>

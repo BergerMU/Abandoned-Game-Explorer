@@ -85,7 +85,6 @@ export default function HomePage() {
       {/* Search Form */}
       <div className="flex flex-row">
         <form onSubmit={HandleSubmit} className='flex flex-row space-x-3'>
-          <p>Please Enter Your Steam Username (Capitalization does matter)</p>
           <input placeholder="Enter your steam account URL or steamid" onChange={e => setUserInput(e.target.value)} className="w-3xl p-3 h-3xl outline-1 outline-black rounded-2xl bg-sky-950" value={userInput}></input>
           <button type='submit' className="bg-sky-800 p-3 rounded-3xl cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
