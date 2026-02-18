@@ -1,8 +1,6 @@
 // Correct rendering for local testing and vercel deployment
 "use client"
-export const dynamic = "force-dynamic"
 
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -13,7 +11,6 @@ export default function Homepage() {
   const [gameDataLoading, setGameDataLoading] = useState(true)
 
   // Account Variables
-  const searchParams = useSearchParams()
   const [steamid, setSteamid] = useState<string | null>(null)
   let [userSummary, setUserSummary] = useState<any>(null)
   let [accountScore, setAccountScore] = useState(0)
@@ -247,9 +244,10 @@ export default function Homepage() {
 
   // Get steamid from url
   useEffect(() => {
-    const id = searchParams.get("steamid")
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get("steamid")
     setSteamid(id)
-  }, [searchParams])
+  }, [])
 
   // Fetch user data
   useEffect(() => {
