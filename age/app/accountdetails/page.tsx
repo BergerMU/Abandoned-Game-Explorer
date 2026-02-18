@@ -1,4 +1,6 @@
+// Correct rendering for local testing and vercel deployment
 "use client"
+export const dynamic = "force-dynamic"
 
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from "react"
