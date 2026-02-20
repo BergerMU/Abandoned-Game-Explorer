@@ -1,7 +1,7 @@
 // Correct rendering for local testing and vercel deployment
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function Homepage() {
@@ -19,22 +19,25 @@ export default function Homepage() {
 
   // Game Variables
   type Game = {
-    score: number,
-    name: string,
-    percent_of_achievements: number,
-    playtime_forever: number,
-    global_median_playtime: number,
+    name: string
+    appid: number
+    genres: string
+    score: number
+
+    global_average_playtime: number
+    global_median_playtime: number
+
+    game_cover: string
+    img_icon_url: string
+
     played_within_two_weeks: boolean
+    playtime_forever: number
+
+    percent_of_achievements: number
+    total_achievements: number
+    unlocked_achievements_count: number
   }
   const [userGameData, setUserGameData] = useState<Game[]>([])
-
-  // Search variables for each category
-  const [searchRecentlyPlayed, setSearchRecentlyPlayed] = useState('')
-  const [searchContinuePlaying, setSearchContinuePlaying] = useState('')
-  const [searchHighScore, setSearchHighScore] = useState('')
-  const [searchAlmostComplete, setSearchAlmostComplete] = useState('')
-  const [searchNotPlayed, setSearchNotPlayed] = useState('')
-  const [searchAllGames, setSearchAllGames] = useState('')
 
   // Calculate a score of how much a user has completed their game
   function CalculateScore(userPlaytime: number, globalPlaytime: number, totalAchievements: number, unlockedAchievements: number) {
@@ -145,8 +148,7 @@ export default function Homepage() {
       // Achievements avariables
       const matchAchievements = userAchievements.find((item: any) => item.appid === currentGame.appid)
       const totalAchievements = matchAchievements?.total_achievements ?? 0
-      const unlockedAchievementsArray = matchAchievements?.achievements ?? []
-      const unlockedAchievementsCount = unlockedAchievementsArray.length
+      const unlockedAchievementsCount = matchAchievements?.achievements ? matchAchievements?.achievements.length :  0
 
       // Determine if game has been played within two weeks
       let isPlayedWithinTwoWeeks: boolean
@@ -173,7 +175,6 @@ export default function Homepage() {
         global_average_playtime: matchDetailedGameData?.average_forever ?? 0,
         global_median_playtime: matchDetailedGameData?.median_forever ?? 0,
         total_achievements: totalAchievements,
-        unlocked_achievements_array: unlockedAchievementsArray,
         unlocked_achievements_count: unlockedAchievementsCount,
         percent_of_achievements: totalAchievements > 0 ? Math.round((unlockedAchievementsCount / totalAchievements) * 100) : 0,
         score: score,
@@ -210,6 +211,195 @@ export default function Homepage() {
     console.log("User Summary: ", summary.players[0])
   }
 
+  type SortConfig<T> = {
+    key: keyof T
+    direction: 'ascending' | 'descending'
+  } | null
+
+  type Category = {
+    games: Game[]
+    header: string
+    subtext: string
+    description: string
+  }
+
+  function useSortableData<T extends Record<string, any>>(
+    items: T[],
+    config: SortConfig<T> = null
+  ) {
+    const [sortConfig, setSortConfig] = useState<SortConfig<T>>(config)
+
+    const sortedItems = useMemo(() => {
+      let sortableItems = [...items]
+
+      if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1
+          }
+          return 0
+        })
+      }
+
+      return sortableItems
+    }, [items, sortConfig])
+
+    const requestSort = (key: keyof T) => {
+      let direction: 'ascending' | 'descending' = 'descending'
+
+      if (
+        sortConfig &&
+        sortConfig.key === key &&
+        sortConfig.direction === 'descending'
+      ) {
+        direction = 'ascending'
+      }
+
+      setSortConfig({ key, direction })
+    }
+
+    return { items: sortedItems, requestSort, sortConfig }
+  }
+
+  const CategoryTable = ({ header, subtext, description, games }: Category) => {
+    const { items, requestSort, sortConfig } = useSortableData(games, {
+      key: "global_median_playtime",
+      direction: "descending"
+    })
+
+    const getClassNamesFor = (name: keyof Game) => {
+      if (!sortConfig) {
+        return
+      }
+      return sortConfig.key === name ? sortConfig.direction : undefined
+    }
+
+    // Search variables for each category
+    const [searchGames, setSearchGames] = useState('')
+
+    return (
+      <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
+        <div className="flex flex-row justify-between items-start">
+          <div className='flex flex-col mb-2 gap-2 max-w-120 min-w-min'>
+            <b className='text-3xl'>{header}</b>
+            <p className="text-2xl">{description}</p>
+            <p>{subtext}</p>
+          </div>
+
+          <button type="button"
+            onClick={() => requestSort('score')}
+            className="cursor-pointer">
+            {sortConfig?.key === 'score' ? sortConfig?.direction === "descending" ? (
+              <p>Score ▼</p>
+            ) : (
+              <p>Score ▲</p>
+            ) : (
+              <p>Score</p>
+            )}
+          </button>
+
+          <button type="button"
+            onClick={() => requestSort('playtime_forever')}
+            className="cursor-pointer">
+            {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
+              <p>Hours Played ▼</p>
+            ) : (
+              <p>Hours Played ▲</p>
+            ) : (
+              <p>Hours Played</p>
+            )}
+          </button>
+
+          <button type="button"
+            onClick={() => requestSort('global_median_playtime')}
+            className="cursor-pointer">
+            {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
+              <p>Global Average Playtime ▼</p>
+            ) : (
+              <p>Global Average Playtime ▲</p>
+            ) : (
+              <p>Global Average Playtime</p>
+            )}
+          </button>
+
+          <button type="button"
+            onClick={() => requestSort('percent_of_achievements')}
+            className="cursor-pointer">
+            {sortConfig?.key === 'percent_of_achievements' ? sortConfig?.direction === "descending" ? (
+              <p>Achievements Unlocked ▼</p>
+            ) : (
+              <p>Achievements Unlocked ▲</p>
+            ) : (
+              <p>Achievements Unlocked</p>
+            )}
+          </button>
+
+          <div className="flex flex-col text-right">
+            <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
+            <p className='text-2xl'>{items.length} Games</p>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
+          {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
+            <div className="flex flex-col items-center text-center w-full max-w-xs sm:max-w-sm md:max-w-md" key={game.appid}>
+              <b className='text-2xl'>{game.name}</b>
+
+              <div className="w-full aspect-3/4 overflow-hidden rounded-xl">
+                {game.game_cover != "No Cover" ? (
+                  <img className='w-full h-full object-contain' src={game.game_cover} />
+                ) : (
+                  <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700'>
+                    <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
+                      {Array(200).fill(game.name + " ")}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="group relative inline-block cursor-pointer w-full">
+                <p>Total Score: {game.score}</p>
+                <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
+                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                  <div>
+                    <b>Scoring</b>
+                    <p>+50% if playtime more than global average</p>
+                    <br />
+                    <p>+50% if all achievements are unlocked</p>
+                  </div>
+                </div>
+              </div>
+
+
+              {game.playtime_forever / 60 < 1 ? (
+                <p>Total Playtime: {game.playtime_forever} minutes</p>
+              ) : (
+                <p>Total Playtime: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+              )}
+              {game.global_median_playtime / 60 < 1 ? (
+                <p>Global Playtime: {game.global_median_playtime % 60} minutes </p>
+              ) : (
+                <p>Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+              )}
+              <br />
+              {game.total_achievements ? (
+                <div>
+                  <p>{game.percent_of_achievements}% Achievements Unlocked</p>
+                </div>
+              ) : (
+                <p>No Unlockable Achievements</p>
+              )}
+            </div>
+          )) : (
+            <p>No games to display</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   function RepeatedCategories({ game }: any) {
     return (
       <div className="flex flex-col items-center text-center w-full max-w-xs sm:max-w-sm md:max-w-md" key={game.appid}>
@@ -217,7 +407,7 @@ export default function Homepage() {
 
         <div className="w-full aspect-3/4 overflow-hidden rounded-xl">
           {game.game_cover != "No Cover" ? (
-            <img className='w-full h-full object-contain' src={game.game_cover}/>
+            <img className='w-full h-full object-contain' src={game.game_cover} />
           ) : (
             <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700'>
               <div className='absolute w-2xl h-2xl font-bold inset-[-50] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
@@ -306,7 +496,7 @@ export default function Homepage() {
           <p className='text-2xl'>Loading User Information</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
-      // Loading Game info
+        // Loading Game info
       ) : gameDataLoading ? (
         <div className='flex flex-row space-x-6'>
           <p className='text-2xl'>Loading Game Data</p>
@@ -324,7 +514,7 @@ export default function Homepage() {
       ) : (
         <div>
           {/* Header User Section */}
-          { playtimeHiddenError && (
+          {playtimeHiddenError && (
             <div className="bg-red-600 p-3 w-full space-y-5 rounded-xl">
               <p>Warning: Your account settings may have "Always keep my total playtime private even if users can see my game details." checked which stops us from setting any of your playtime for your games</p>
               <p>We advise you double check that box is not checked</p>
@@ -351,11 +541,12 @@ export default function Homepage() {
 
                   {/* If user is offline, busy, away, snoozed */}
                   {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-                    <p>Offline</p>
+                    <p>User's Offline</p>
                   ) : (
-                    <p>Online</p>
+                    <p>User's Online</p>
                   )}
                   <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
+                  <p>{userGameData.length} Total Games</p>
                 </div>
               </div>
 
@@ -378,132 +569,52 @@ export default function Homepage() {
 
           <div className='flex flex-col gap-y-10'>
             {/* Recently Played Games */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>Recently Played</b>
-                  <p className="text-2xl">Played within the last two weeks</p>
-                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.played_within_two_weeks == true).length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} value={searchRecentlyPlayed} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
-                {userGameData.filter((a) => a.played_within_two_weeks == true).length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchRecentlyPlayed.toLowerCase())).filter((a) => a.played_within_two_weeks == true).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
-                  ))
-                ) : (
-                  <p>No games to display</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData.filter(x => x.played_within_two_weeks)}
+              header="Recently Played"
+              description="Played within the last two weeks"
+              subtext=""
+            />
 
             {/* Games that haven't been played */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>not played:(</b>
-                  <p className="text-2xl">Why haven't you played this yet? install them at least!</p>
-                  <p className="text-2xl mb-2">{userGameData.filter(a => a.playtime_forever === 0).length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} value={searchNotPlayed} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchNotPlayed.toLowerCase())).sort((a, b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
-                  ))
-                ) : (
-                  <p>No games to display</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData.filter(a => a.playtime_forever === 0)}
+              header="not played:("
+              description="Why haven't you played this yet? install them at least!"
+              subtext=""
+            />
 
             {/* Games with less than 10 minutes of playtime */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>Bearly Touched</b>
-                  <p className="text-2xl">Less than 10 minutes of playtime</p>
-                  <p>See if these games qualify to get refunded!</p>
-                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10).length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} value={searchContinuePlaying} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
-                {userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10).length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchContinuePlaying.toLowerCase()))
-                    .filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)
-                    .sort((a, b) => b.global_median_playtime - a.global_median_playtime).map((game: any) => (
-                      <RepeatedCategories game={game} key={game.id} />
-                    ))
-                ) : (
-                  <p>No games to display</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)}
+              header="Bearly Touched"
+              description="Less than 10 minutes of playtime"
+              subtext="See if these games qualify to get refunded!"
+            />
 
             {/* Games that are almost at 100% */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>Almost Complete!</b>
-                  <p className="text-2xl">Games with at least a 75% achievements and 80% score</p>
-                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} value={searchAlmostComplete} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchAlmostComplete.toLowerCase())).filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a, b) => b.score - a.score).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
-                  ))
-                ) : (
-                  <p>No games to display</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100)}
+              header="Almost Complete!"
+              description="Games with at least a 75% achievements and 80% score"
+              subtext=""
+            />
 
             {/* 100% Score Games */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>High Score</b>
-                  <p className="text-2xl">Games that score at least a 100%</p>
-                  <p className='text-2xl mb-2'>{userGameData.filter((a) => a.score == 100).length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} value={searchHighScore} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.filter((a) => a.score == 100).length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchHighScore.toLowerCase())).filter((a) => a.score == 100).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.appid} />
-                  ))
-                ) : (
-                  <p>No games to display :(((</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData.filter((a) => a.score == 100)}
+              header="High Score!"
+              description="Games that score at least a 100%"
+              subtext=""
+            />
 
             {/* All Games */}
-            <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-              <div className="flex flex-row justify-between">
-                <div className='flex flex-col mb-2 gap-2'>
-                  <b className='text-3xl'>All your games!</b>
-                  <p className="text-2xl mb-2">{userGameData.length} Games</p>
-                </div>
-                <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} value={searchAllGames} />
-              </div>
-              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
-                {userGameData.length ? (
-                  userGameData.filter(a => a.name.toLowerCase().includes(searchAllGames.toLowerCase())).sort((a, b) => b.score - a.score).map((game: any) => (
-                    <RepeatedCategories game={game} key={game.id} />
-                  ))
-                ) : (
-                  <p>No games to display, get more games!</p>
-                )}
-              </div>
-            </div>
+            <CategoryTable
+              games={userGameData}
+              header="All your games!"
+              description=""
+              subtext=""
+            />
           </div>
         </div>
       )}
