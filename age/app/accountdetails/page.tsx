@@ -9,11 +9,13 @@ export default function Homepage() {
   const router = useRouter()
   const [accountDataLoading, setAccountDataLoading] = useState(true)
   const [gameDataLoading, setGameDataLoading] = useState(true)
+  const [privacyError, setPrivacyError] = useState(false)
+  const [playtimeHiddenError, setPlaytimeHiddenError] = useState(false)
 
   // Account Variables
   const [steamid, setSteamid] = useState<string | null>(null)
-  let [userSummary, setUserSummary] = useState<any>(null)
-  let [accountScore, setAccountScore] = useState(0)
+  const [userSummary, setUserSummary] = useState<any>(null)
+  const [accountScore, setAccountScore] = useState(0)
 
   // Game Variables
   type Game = {
@@ -24,7 +26,7 @@ export default function Homepage() {
     global_median_playtime: number,
     played_within_two_weeks: boolean
   }
-  let [userGameData, setUserGameData] = useState<Game[]>([])
+  const [userGameData, setUserGameData] = useState<Game[]>([])
 
   // Search variables for each category
   const [searchRecentlyPlayed, setSearchRecentlyPlayed] = useState('')
@@ -63,6 +65,8 @@ export default function Homepage() {
 
   // Gets owned games, covers, achievements, game details, recently played
   async function FetchSteamGames(steamid: string) {
+    setPrivacyError(false)
+    setPlaytimeHiddenError(false)
     // Fetch owned games from steamid
     const tempOwnedGames = await fetch('/api/GetOwnedGames', {
       method: "POST",
@@ -71,6 +75,20 @@ export default function Homepage() {
     const ownedGames = await tempOwnedGames.json()
     console.log("User Owned Games: ", ownedGames)
 
+    // Check if user games are available. Account privacy settings might be private
+    if (!ownedGames.game_count) {
+      console.log("Get Owned Games API: no games visible")
+      setPrivacyError(true)
+      setGameDataLoading(false)
+      return
+    }
+
+    // Check if user has "Always keep my total playtime private even if users can see my game details" checked
+    if (ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
+      setPlaytimeHiddenError(true)
+    }
+
+    // Unable to fetch account/games in the first place
     if (ownedGames.error) {
       router.push("/")
     }
@@ -212,7 +230,7 @@ export default function Homepage() {
         <div className="group relative inline-block cursor-pointer w-full">
           <p>Total Score: {game.score}</p>
           <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
-          <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-2">
+          <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
             <div>
               <b>Scoring</b>
               <p>+50% if playtime more than global average</p>
@@ -256,7 +274,14 @@ export default function Homepage() {
     setAccountDataLoading(false)
 
     setGameDataLoading(true)
-    const { ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers } = await FetchSteamGames(steamid)
+    // Get steam games and check if null
+    const result = await FetchSteamGames(steamid)
+    if (!result) {
+      return
+    }
+
+    // Concat data
+    const { ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers } = result
     await CombineGameData(ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers)
     setGameDataLoading(false)
   }
@@ -274,23 +299,40 @@ export default function Homepage() {
   }, [steamid])
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start">
+    <main className="flex min-h-screen flex-col py-20 px-16 items-center justify-center">
+      {/* Loading user account info */}
       {accountDataLoading ? (
         <div className='flex flex-row space-x-6'>
           <p className='text-2xl'>Loading User Information</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
+      // Loading Game info
       ) : gameDataLoading ? (
         <div className='flex flex-row space-x-6'>
           <p className='text-2xl'>Loading Game Data</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
+      ) : privacyError ? (
+        <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-5 rounded-xl">
+          <p className="text-2xl">Your account data was unable to be viewed</p>
+          <p>Go to your steam account privacy settings and check the following to ensure your account is accessable</p>
+          <p>• Make sure "My basic details" is "Public"</p>
+          <p>• Make sure "My profile" is "Public"</p>
+          <p>• Make sure "Game details" is "Public"</p>
+          <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
+        </div>
       ) : (
         <div>
-          {/* Heaader User Section */}
+          {/* Header User Section */}
+          { playtimeHiddenError && (
+            <div className="bg-red-600 p-3 w-full space-y-5 rounded-xl">
+              <p>Warning: Your account settings may have "Always keep my total playtime private even if users can see my game details." checked which stops us from setting any of your playtime for your games</p>
+              <p>We advise you double check that box is not checked</p>
+            </div>
+          )}
           <div className='flex flex-row justify-between align-top'>
             {/* Account Information */}
-            <div className='flex flex-col p-2'>
+            <div className='flex flex-col p-3'>
               <p className="text-4xl text-center mb-2">{userSummary.personaname}</p>
 
               <div className='flex flex-row space-x-10'>
@@ -299,7 +341,7 @@ export default function Homepage() {
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
                     <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
-                    <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-2">
+                    <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                       <div>
                         <b>Account Scoring</b>
                         <p>Your Account Score is the average score accross all of your games</p>
@@ -318,7 +360,7 @@ export default function Homepage() {
               </div>
 
             </div>
-            <div className='flex flex-col p-2 w-150 text-right'>
+            <div className='flex flex-col p-3 w-150 text-right'>
               <b className="text-3xl">Scoring</b>
               <ul className='space-y-5'>
                 <li>Game scores are based on playtime and achievements</li>
@@ -345,7 +387,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchRecentlyPlayed(e.target.value)} value={searchRecentlyPlayed} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
                 {userGameData.filter((a) => a.played_within_two_weeks == true).length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchRecentlyPlayed.toLowerCase())).filter((a) => a.played_within_two_weeks == true).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />
@@ -366,7 +408,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchNotPlayed(e.target.value)} value={searchNotPlayed} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter(a => a.playtime_forever === 0).length > 0 ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchNotPlayed.toLowerCase())).sort((a, b) => b.global_median_playtime - a.global_median_playtime).filter(a => a.playtime_forever === 0).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />
@@ -388,7 +430,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchContinuePlaying(e.target.value)} value={searchContinuePlaying} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
                 {userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10).length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchContinuePlaying.toLowerCase()))
                     .filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)
@@ -411,7 +453,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAlmostComplete(e.target.value)} value={searchAlmostComplete} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchAlmostComplete.toLowerCase())).filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100).filter((a) => a.score >= 80 && a.score < 100).sort((a, b) => b.score - a.score).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />
@@ -432,7 +474,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchHighScore(e.target.value)} value={searchHighScore} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.filter((a) => a.score == 100).length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchHighScore.toLowerCase())).filter((a) => a.score == 100).sort((a, b) => b.playtime_forever - a.playtime_forever).map((game: any) => (
                     <RepeatedCategories game={game} key={game.appid} />
@@ -452,7 +494,7 @@ export default function Homepage() {
                 </div>
                 <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchAllGames(e.target.value)} value={searchAllGames} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 max-h-150 overflow-y-auto space-y-8 gap-5">
+              <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5">
                 {userGameData.length ? (
                   userGameData.filter(a => a.name.toLowerCase().includes(searchAllGames.toLowerCase())).sort((a, b) => b.score - a.score).map((game: any) => (
                     <RepeatedCategories game={game} key={game.id} />

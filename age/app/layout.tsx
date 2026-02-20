@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${font.className} antialiased`}>
 
-      <nav className='flex z-50 flex-row justify-between p-4 bg-zinc-800 fixed top-0 w-full'>
+      <nav className='flex z-50 flex-row justify-between p-4 bg-zinc-800 fixed top-0 w-full text-2xl'>
         <Link href="/">Abandoned Game Explorer</Link>
         <div className='flex flex-row justify-between gap-6'>
           <Link href="/">Home</Link>
