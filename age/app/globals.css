@@ -10,3 +10,13 @@ body {
   color: white;
   font-family: sans-serif;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(255, 255, 255);
+  border-radius: 0.75rem;
+}

@@ -5,7 +5,6 @@ import { Funnel_Sans } from "next/font/google";
 import "./globals.css";
 
 const font = Funnel_Sans({
-  weight: '500',
   subsets: ["latin"],
 });
 

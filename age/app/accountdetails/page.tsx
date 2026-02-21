@@ -16,6 +16,7 @@ export default function Homepage() {
   const [steamid, setSteamid] = useState<string | null>(null)
   const [userSummary, setUserSummary] = useState<any>(null)
   const [accountScore, setAccountScore] = useState(0)
+  const [accountCost, setAccountCost] = useState(0)
 
   // Game Variables
   type Game = {
@@ -101,8 +102,8 @@ export default function Homepage() {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
     })
-    const detailedGameData = await tempDetailedGameData.json()
-    console.log("Steam Spy Game Data: ", detailedGameData)
+    const steamSpyData = await tempDetailedGameData.json()
+    console.log("Steam Spy Game Data: ", steamSpyData)
 
     // Fetch owned game covers
     const tempGameCovers = await fetch('/api/GetSteamCovers', {
@@ -130,25 +131,21 @@ export default function Homepage() {
     const recentlyPlayed = await tempRecentlyPlayed.json()
     console.log("Recently Played: ", recentlyPlayed)
 
-    return { ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers }
+    return { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers }
   }
 
   // Combine various game data into a single list of objects
-  async function CombineGameData(ownedGames: any,
-    userAchievements: any,
-    detailedGameData: any,
-    recentlyPlayed: any,
-    gameCovers: any) {
+  async function CombineGameData(ownedGames: any, userAchievements: any, steamSpyData: any, recentlyPlayed: any, gameCovers: any) {
 
     const combinedData = ownedGames.games.map((currentGame: any) => {
       // Specific Game details
-      const matchDetailedGameData = detailedGameData.find((item: any) => item.appid === currentGame.appid)
+      const matchDetailedGameData = steamSpyData.find((item: any) => item.appid === currentGame.appid)
       const matchCover = gameCovers.find((item: any) => item.appid === currentGame.appid)
 
       // Achievements avariables
       const matchAchievements = userAchievements.find((item: any) => item.appid === currentGame.appid)
       const totalAchievements = matchAchievements?.total_achievements ?? 0
-      const unlockedAchievementsCount = matchAchievements?.achievements ? matchAchievements?.achievements.length :  0
+      const unlockedAchievementsCount = matchAchievements?.achievements ? matchAchievements?.achievements.length : 0
 
       // Determine if game has been played within two weeks
       let isPlayedWithinTwoWeeks: boolean
@@ -179,10 +176,11 @@ export default function Homepage() {
         percent_of_achievements: totalAchievements > 0 ? Math.round((unlockedAchievementsCount / totalAchievements) * 100) : 0,
         score: score,
         played_within_two_weeks: isPlayedWithinTwoWeeks,
-        game_cover: matchCover.url,
+        game_cover: matchCover?.url ?? "No Cover",
         genres: matchDetailedGameData.genre
       }
     })
+
     // Save game data
     setUserGameData(combinedData)
     console.log("Combined Game Data: ", combinedData)
@@ -223,6 +221,7 @@ export default function Homepage() {
     description: string
   }
 
+  // Takes in array of user games and sorts them based on categories
   function useSortableData<T extends Record<string, any>>(
     items: T[],
     config: SortConfig<T> = null
@@ -269,13 +268,6 @@ export default function Homepage() {
       key: "global_median_playtime",
       direction: "descending"
     })
-
-    const getClassNamesFor = (name: keyof Game) => {
-      if (!sortConfig) {
-        return
-      }
-      return sortConfig.key === name ? sortConfig.direction : undefined
-    }
 
     // Search variables for each category
     const [searchGames, setSearchGames] = useState('')
@@ -344,20 +336,20 @@ export default function Homepage() {
         </div>
         <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
-            <div className="flex flex-col items-center text-center w-full max-w-xs sm:max-w-sm md:max-w-md" key={game.appid}>
+            <div className="flex flex-col w-full max-w-xs sm:max-w-sm md:max-w-md space-y-3" key={game.appid}>
               <b className='text-2xl'>{game.name}</b>
 
-              <div className="w-full aspect-3/4 overflow-hidden rounded-xl">
-                {game.game_cover != "No Cover" ? (
-                  <img className='w-full h-full object-contain' src={game.game_cover} />
-                ) : (
-                  <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700'>
-                    <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
-                      {Array(200).fill(game.name + " ")}
-                    </div>
+              {game.game_cover != "No Cover" ? (
+                <div className="rounded-xl">
+                  <img className="object-contain rounded-xl" src={game.game_cover} />
+                </div>
+              ) : (
+                <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
+                  <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
+                    {Array(200).fill(game.name + " ")}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="group relative inline-block cursor-pointer w-full">
                 <p>Total Score: {game.score}</p>
@@ -374,81 +366,27 @@ export default function Homepage() {
 
 
               {game.playtime_forever / 60 < 1 ? (
-                <p>Total Playtime: {game.playtime_forever} minutes</p>
+                <p>Hours Played: {game.playtime_forever} minutes</p>
               ) : (
-                <p>Total Playtime: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+                <p>Hours Played: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
               )}
+
               {game.global_median_playtime / 60 < 1 ? (
-                <p>Global Playtime: {game.global_median_playtime % 60} minutes </p>
+                <p>Average Global Playtime: {game.global_median_playtime % 60} minutes </p>
               ) : (
-                <p>Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+                <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
               )}
-              <br />
+
               {game.total_achievements ? (
-                <div>
-                  <p>{game.percent_of_achievements}% Achievements Unlocked</p>
-                </div>
+                <p>Achievements: {game.percent_of_achievements}% unlocked</p>
               ) : (
-                <p>No Unlockable Achievements</p>
+                <p>No unlockable achievements</p>
               )}
             </div>
           )) : (
             <p>No games to display</p>
           )}
         </div>
-      </div>
-    )
-  }
-
-  function RepeatedCategories({ game }: any) {
-    return (
-      <div className="flex flex-col items-center text-center w-full max-w-xs sm:max-w-sm md:max-w-md" key={game.appid}>
-        <b className='text-2xl'>{game.name}</b>
-
-        <div className="w-full aspect-3/4 overflow-hidden rounded-xl">
-          {game.game_cover != "No Cover" ? (
-            <img className='w-full h-full object-contain' src={game.game_cover} />
-          ) : (
-            <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700'>
-              <div className='absolute w-2xl h-2xl font-bold inset-[-50] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
-                {Array(90).fill(game.name + " ")}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="group relative inline-block cursor-pointer w-full">
-          <p>Total Score: {game.score}</p>
-          <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
-          <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-            <div>
-              <b>Scoring</b>
-              <p>+50% if playtime more than global average</p>
-              <br />
-              <p>+50% if all achievements are unlocked</p>
-            </div>
-          </div>
-        </div>
-
-
-        {game.playtime_forever / 60 < 1 ? (
-          <p>Total Playtime: {game.playtime_forever} minutes</p>
-        ) : (
-          <p>Total Playtime: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
-        )}
-        {game.global_median_playtime / 60 < 1 ? (
-          <p>Global Playtime: {game.global_median_playtime % 60} minutes </p>
-        ) : (
-          <p>Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
-        )}
-        <br />
-        {game.total_achievements ? (
-          <div>
-            <p>{game.percent_of_achievements}% Achievements Unlocked</p>
-          </div>
-        ) : (
-          <p>No Unlockable Achievements</p>
-        )}
       </div>
     )
   }
@@ -471,8 +409,18 @@ export default function Homepage() {
     }
 
     // Concat data
-    const { ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers } = result
-    await CombineGameData(ownedGames, userAchievements, detailedGameData, recentlyPlayed, gameCovers)
+    const { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers } = result
+    await CombineGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
+
+    let tempGameSum = 0
+    for (let obj of steamSpyData) {
+      console.log("temp output")
+      if (obj.price != null) {
+        tempGameSum += Number(obj.price)
+      }
+    }
+    setAccountCost(tempGameSum / 100)
+
     setGameDataLoading(false)
   }
 
@@ -520,14 +468,14 @@ export default function Homepage() {
               <p>We advise you double check that box is not checked</p>
             </div>
           )}
-          <div className='flex flex-row justify-between align-top'>
+          <div className='flex'>
             {/* Account Information */}
             <div className='flex flex-col p-3'>
-              <p className="text-4xl text-center mb-2">{userSummary.personaname}</p>
+              <p className="text-4xl mb-2">{userSummary.personaname}</p>
 
               <div className='flex flex-row space-x-10'>
-                <img src={userSummary.avatarfull}></img>
-                <div className="flex flex-col">
+                <img src={userSummary.avatarfull}/>
+                <div className="flex flex-col space-y-3">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
                     <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
@@ -541,24 +489,16 @@ export default function Homepage() {
 
                   {/* If user is offline, busy, away, snoozed */}
                   {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-                    <p>User's Offline</p>
+                    <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
                   ) : (
-                    <p>User's Online</p>
+                    <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
                   )}
-                  <p>Last Time Online: {new Date(userSummary.lastlogoff * 1000).toLocaleDateString("en-US")}</p>
-                  <p>{userGameData.length} Total Games</p>
+                  <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
+                  <p>{userGameData.length} Games</p>
+                  <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
+                  <p>Note: This estimate does not factor in discounts and some games prices may have been available</p>
                 </div>
               </div>
-
-            </div>
-            <div className='flex flex-col p-3 w-150 text-right'>
-              <b className="text-3xl">Scoring</b>
-              <ul className='space-y-5'>
-                <li>Game scores are based on playtime and achievements</li>
-                <li>One half of a games score is earned if your playtime is more than the global average playtime</li>
-                <li>The other half of a games score is earned by completing all achievements</li>
-                <li>Your account score is the average game score across all of your games</li>
-              </ul>
             </div>
           </div>
 
@@ -579,17 +519,17 @@ export default function Homepage() {
             {/* Games that haven't been played */}
             <CategoryTable
               games={userGameData.filter(a => a.playtime_forever === 0)}
-              header="not played:("
-              description="Why haven't you played this yet? install them at least!"
-              subtext=""
+              header="Not Played:("
+              description="Games with 0 hours played"
+              subtext="Why haven't you played this yet? install them at least!"
             />
 
             {/* Games with less than 10 minutes of playtime */}
             <CategoryTable
               games={userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)}
               header="Bearly Touched"
-              description="Less than 10 minutes of playtime"
-              subtext="See if these games qualify to get refunded!"
+              description="Less than 10 minutes of time played"
+              subtext="At least give them a chance!"
             />
 
             {/* Games that are almost at 100% */}
@@ -605,7 +545,7 @@ export default function Homepage() {
               games={userGameData.filter((a) => a.score == 100)}
               header="High Score!"
               description="Games that score at least a 100%"
-              subtext=""
+              subtext="Level Up! (or something)"
             />
 
             {/* All Games */}
