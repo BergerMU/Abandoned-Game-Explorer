@@ -10,7 +10,6 @@ export default function Homepage() {
   const [accountDataLoading, setAccountDataLoading] = useState(true)
   const [gameDataLoading, setGameDataLoading] = useState(true)
   const [privacyError, setPrivacyError] = useState(false)
-  const [playtimeHiddenError, setPlaytimeHiddenError] = useState(false)
 
   // Account Variables
   const [steamid, setSteamid] = useState<string | null>(null)
@@ -70,7 +69,6 @@ export default function Homepage() {
   // Gets owned games, covers, achievements, game details, recently played
   async function FetchSteamGames(steamid: string) {
     setPrivacyError(false)
-    setPlaytimeHiddenError(false)
     // Fetch owned games from steamid
     const tempOwnedGames = await fetch('/api/GetOwnedGames', {
       method: "POST",
@@ -79,19 +77,13 @@ export default function Homepage() {
     const ownedGames = await tempOwnedGames.json()
     console.log("User Owned Games: ", ownedGames)
 
-    // Check if user games are available. Account privacy settings might be private
-    if (!ownedGames.game_count) {
+    // Check if user games are available and playtime can be viewed. Account privacy settings might be private
+    if (!ownedGames.game_count || ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
       console.log("Get Owned Games API: no games visible")
       setPrivacyError(true)
       setGameDataLoading(false)
       return
     }
-
-    // Check if user has "Always keep my total playtime private even if users can see my game details" checked
-    if (ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
-      setPlaytimeHiddenError(true)
-    }
-
     // Unable to fetch account/games in the first place
     if (ownedGames.error) {
       router.push("/")
@@ -357,7 +349,7 @@ export default function Homepage() {
                 <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                   <div>
                     <b>Scoring</b>
-                    <p>+50% if playtime more than global average</p>
+                    <p>+50% if Hours Played more than global average</p>
                     <br />
                     <p>+50% if all achievements are unlocked</p>
                   </div>
@@ -414,7 +406,6 @@ export default function Homepage() {
 
     let tempGameSum = 0
     for (let obj of steamSpyData) {
-      console.log("temp output")
       if (obj.price != null) {
         tempGameSum += Number(obj.price)
       }
@@ -462,12 +453,6 @@ export default function Homepage() {
       ) : (
         <div>
           {/* Header User Section */}
-          {playtimeHiddenError && (
-            <div className="bg-red-600 p-3 w-full space-y-5 rounded-xl">
-              <p>Warning: Your account settings may have "Always keep my total playtime private even if users can see my game details." checked which stops us from setting any of your playtime for your games</p>
-              <p>We advise you double check that box is not checked</p>
-            </div>
-          )}
           <div className='flex'>
             {/* Account Information */}
             <div className='flex flex-col p-3'>
