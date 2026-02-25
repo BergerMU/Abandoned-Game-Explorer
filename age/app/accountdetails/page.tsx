@@ -16,12 +16,12 @@ export default function Homepage() {
   const [userSummary, setUserSummary] = useState<any>(null)
   const [accountScore, setAccountScore] = useState(0)
   const [accountCost, setAccountCost] = useState(0)
+  const [errorHeader, setErrorHeader] = useState("")
 
   // Game Variables
   type Game = {
     name: string
     appid: number
-    genres: string
     score: number
 
     global_average_playtime: number
@@ -42,6 +42,11 @@ export default function Homepage() {
   // Calculate a score of how much a user has completed their game
   function CalculateScore(userPlaytime: number, globalPlaytime: number, totalAchievements: number, unlockedAchievements: number) {
     let totalScore = 0
+
+    // Global playtime is unavailable
+    if (globalPlaytime == -1) {
+      return -1
+    }
 
     // Game has achievements
     if (totalAchievements !== 0) {
@@ -94,8 +99,13 @@ export default function Homepage() {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
     })
-    const steamSpyData = await tempDetailedGameData.json()
+    type SteamSpyResponse = Record<string, Record<string, any>>
+    const steamSpyData = await tempDetailedGameData.json() as SteamSpyResponse
     console.log("Steam Spy Game Data: ", steamSpyData)
+
+    if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
+      setErrorHeader("Games details, account score, and estimated account cost may be inaccurate due to the Steam Spy API infrastucture globally being overloaded.")
+    }
 
     // Fetch owned game covers
     const tempGameCovers = await fetch('/api/GetSteamCovers', {
@@ -161,15 +171,14 @@ export default function Homepage() {
 
       return {
         ...currentGame,
-        global_average_playtime: matchDetailedGameData?.average_forever ?? 0,
-        global_median_playtime: matchDetailedGameData?.median_forever ?? 0,
+        global_average_playtime: matchDetailedGameData?.average_forever ?? -1,
+        global_median_playtime: matchDetailedGameData?.median_forever ?? -1,
         total_achievements: totalAchievements,
         unlocked_achievements_count: unlockedAchievementsCount,
         percent_of_achievements: totalAchievements > 0 ? Math.round((unlockedAchievementsCount / totalAchievements) * 100) : 0,
         score: score,
         played_within_two_weeks: isPlayedWithinTwoWeeks,
-        game_cover: matchCover?.url ?? "No Cover",
-        genres: matchDetailedGameData.genre
+        game_cover: matchCover?.url ?? "No Cover"
       }
     })
 
@@ -179,12 +188,17 @@ export default function Homepage() {
 
     // Calculate account score by averaging each individual game score
     let tempAccountScore = 0
+    let totalValidGames = 0
     for (const obj of combinedData) {
-      tempAccountScore += obj.score
+      if (obj.global_median_playtime != -1) {
+        tempAccountScore += obj.score
+        totalValidGames += 1
+      }
     }
+
     // Accounts for division by zero errors
     if (combinedData.length > 0) {
-      setAccountScore(Math.round(tempAccountScore / combinedData.length))
+      setAccountScore(Math.round(tempAccountScore / totalValidGames))
     } else {
       setAccountScore(0)
     }
@@ -331,20 +345,34 @@ export default function Homepage() {
             <div className="flex flex-col w-full max-w-xs sm:max-w-sm md:max-w-md space-y-3" key={game.appid}>
               <b className='text-2xl'>{game.name}</b>
 
-              {game.game_cover != "No Cover" ? (
-                <div className="rounded-xl">
-                  <img className="object-contain rounded-xl" src={game.game_cover} />
-                </div>
-              ) : (
-                <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
-                  <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
-                    {Array(200).fill(game.name + " ")}
+              <div className="group relative inline-block cursor-pointer w-full z-1">
+                {/* Content user interacts with goes here */}
+                {game.game_cover != "No Cover" ? (
+                  <div className="rounded-xl">
+                    <img className="object-contain rounded-xl" src={game.game_cover} />
+                  </div>
+                ) : (
+                  <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
+                    <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
+                      {Array(200).fill(game.name + " ")}
+                    </div>
+                  </div>
+                )}
+                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                  {/* Popup goes here */}
+                  <div className="flex flex-col">
+                    <a className="text-blue-300" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank">Visit Game Store</a>
+                    <a className="text-blue-300" href={`https://steamcommunity.com/app/${game.appid}/guides`} target="_blank">Visit Game Guides</a>
                   </div>
                 </div>
-              )}
+              </div>
 
               <div className="group relative inline-block cursor-pointer w-full">
-                <p>Total Score: {game.score}</p>
+                {game.score != -1 ? (
+                  <p>Total Score: {game.score}</p>
+                ) : (
+                  <p>Total Score: Unavailable</p>
+                )}
                 <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
                 <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                   <div>
@@ -363,10 +391,12 @@ export default function Homepage() {
                 <p>Hours Played: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
               )}
 
-              {game.global_median_playtime / 60 < 1 ? (
+              {game.global_median_playtime != -1 ? (game.global_median_playtime / 60 < 1 ? (
                 <p>Average Global Playtime: {game.global_median_playtime % 60} minutes </p>
               ) : (
                 <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+              )) : (
+                <p>Average Global Playtime: Unavailable</p>
               )}
 
               {game.total_achievements ? (
@@ -405,7 +435,8 @@ export default function Homepage() {
     await CombineGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
 
     let tempGameSum = 0
-    for (let obj of steamSpyData) {
+
+    for (const obj of Object.values(steamSpyData)) {
       if (obj.price != null) {
         tempGameSum += Number(obj.price)
       }
@@ -453,13 +484,18 @@ export default function Homepage() {
       ) : (
         <div>
           {/* Header User Section */}
+          {errorHeader && (
+            <div className="bg-red-600 p-3 w-full space-y-5 rounded-xl">
+              <p>{errorHeader}</p>
+            </div>
+          )}
           <div className='flex'>
             {/* Account Information */}
             <div className='flex flex-col p-3'>
               <p className="text-4xl mb-2">{userSummary.personaname}</p>
 
               <div className='flex flex-row space-x-10'>
-                <img src={userSummary.avatarfull}/>
+                <img src={userSummary.avatarfull} />
                 <div className="flex flex-col space-y-3">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
@@ -481,7 +517,7 @@ export default function Homepage() {
                   <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
                   <p>{userGameData.length} Games</p>
                   <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
-                  <p>Note: This estimate does not factor in discounts and some games prices may have been available</p>
+                  <p>Note: This estimate does not factor in discounts or microstransactions and some prices may not have been available</p>
                 </div>
               </div>
             </div>
