@@ -343,9 +343,9 @@ export default function Homepage() {
         <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
             <div className="flex flex-col w-full max-w-xs sm:max-w-sm md:max-w-md space-y-3" key={game.appid}>
-              <b className='text-2xl'>{game.name}</b>
+              <b>{game.name}</b>
 
-              <div className="group relative inline-block cursor-pointer w-full z-1">
+              <div className="group relative inline-block cursor-pointer w-full h-full z-10">
                 {/* Content user interacts with goes here */}
                 {game.game_cover != "No Cover" ? (
                   <div className="rounded-xl">
