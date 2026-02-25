@@ -104,7 +104,7 @@ export default function Homepage() {
     console.log("Steam Spy Game Data: ", steamSpyData)
 
     if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
-      setErrorHeader("Games details, account score, and estimated account cost may be inaccurate due to the Steam Spy API infrastucture globally being overloaded.")
+      setErrorHeader("Games details, account score, and estimated account cost may be inaccurate due to the Steam Spy API infrastucture globally being overloaded. The affected games will say Unavailable for its fields")
     }
 
     // Fetch owned game covers
@@ -345,26 +345,26 @@ export default function Homepage() {
             <div className="flex flex-col w-full max-w-xs sm:max-w-sm md:max-w-md space-y-3" key={game.appid}>
               <b>{game.name}</b>
 
-              <div className="group relative inline-block cursor-pointer w-full h-full z-10">
+              <div className="h-full">
                 {/* Content user interacts with goes here */}
                 {game.game_cover != "No Cover" ? (
-                  <div className="rounded-xl">
-                    <img className="object-contain rounded-xl" src={game.game_cover} />
+                  <div className="relative w-full rounded-xl">
+                    <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
+                    <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
                   </div>
                 ) : (
-                  <div className='relative w-full h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
+                  <div className='relative w-full min-h-64 h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
                     <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
                       {Array(200).fill(game.name + " ")}
                     </div>
                   </div>
                 )}
-                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-                  {/* Popup goes here */}
-                  <div className="flex flex-col">
-                    <a className="text-blue-300" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank">Visit Game Store</a>
-                    <a className="text-blue-300" href={`https://steamcommunity.com/app/${game.appid}/guides`} target="_blank">Visit Game Guides</a>
-                  </div>
-                </div>
+              </div>
+
+              {/* Steam Game Buttons */}
+              <div className="flex flex-row justify-between text-center">
+                <a className="p-2 bg-slate-700 rounded-xl cursor-pointer" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
+                <a className="p-2 bg-slate-700 rounded-xl cursor-pointer" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
               </div>
 
               <div className="group relative inline-block cursor-pointer w-full">
