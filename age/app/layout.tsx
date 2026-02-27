@@ -1,22 +1,22 @@
 import { Analytics } from "@vercel/analytics/next"
 import Link from 'next/link'
-import type { Metadata } from "next";
-import { Funnel_Sans } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Funnel_Sans } from "next/font/google"
+import "./globals.css"
 
 const font = Funnel_Sans({
   subsets: ["latin"],
-});
+})
 
 export const metadata: Metadata = {
   title: "Abandoned Game Explorer",
-  description: "Discover your forgotten gems",
-};
+  description: "You got games on your phone?",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">

@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation"
 export default function Homepage() {
   // Page Variables
   const router = useRouter()
-  const [accountDataLoading, setAccountDataLoading] = useState(true)
-  const [gameDataLoading, setGameDataLoading] = useState(true)
+  const [loadingMessage, setLoadingMessage] = useState("")
   const [privacyError, setPrivacyError] = useState(false)
 
   // Account Variables
@@ -75,6 +74,7 @@ export default function Homepage() {
   async function FetchSteamGames(steamid: string) {
     setPrivacyError(false)
     // Fetch owned games from steamid
+    setLoadingMessage("Getting User Games API")
     const tempOwnedGames = await fetch('/api/GetOwnedGames', {
       method: "POST",
       body: JSON.stringify({ id: steamid })
@@ -86,7 +86,7 @@ export default function Homepage() {
     if (!ownedGames.game_count || ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
       console.log("Get Owned Games API: no games visible")
       setPrivacyError(true)
-      setGameDataLoading(false)
+      setLoadingMessage("")
       return
     }
     // Unable to fetch account/games in the first place
@@ -95,6 +95,7 @@ export default function Homepage() {
     }
 
     // Fetch in depth data from steam spy
+    setLoadingMessage("Getting Game Specific Details API (genres, price, global average playtime, etc)")
     const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
@@ -108,6 +109,7 @@ export default function Homepage() {
     }
 
     // Fetch owned game covers
+    setLoadingMessage("Getting Game Covers API")
     const tempGameCovers = await fetch('/api/GetSteamCovers', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
@@ -116,6 +118,7 @@ export default function Homepage() {
     console.log("Game Covers: ", gameCovers)
 
     // Fetch owned games from userID
+    setLoadingMessage("Getting User Achievements API")
     const tempUserAchievements = await fetch('/api/GetPlayerAchievements', {
       method: "POST",
       body: JSON.stringify({ id: steamid, gameData: ownedGames })
@@ -124,6 +127,7 @@ export default function Homepage() {
     console.log("User Achievements: ", userAchievements)
 
     // Fetch recently played
+    setLoadingMessage("Getting Recently Played API")
     const tempRecentlyPlayed = await fetch('/api/GetRecentlyPlayed', {
       method: "POST",
       body: JSON.stringify({ id: steamid })
@@ -342,70 +346,77 @@ export default function Homepage() {
         </div>
         <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
-            <div className="flex flex-col w-full max-w-xs sm:max-w-sm md:max-w-md space-y-3" key={game.appid}>
-              <b>{game.name}</b>
+            <div className="flex flex-col h-full" key={game.appid}>
 
-              <div className="h-full">
-                {/* Content user interacts with goes here */}
-                {game.game_cover != "No Cover" ? (
-                  <div className="relative w-full rounded-xl">
-                    <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
-                    <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
-                  </div>
-                ) : (
-                  <div className='relative w-full min-h-64 h-full bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden'>
-                    <div className='absolute w-2xl h-2xl font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
-                      {Array(200).fill(game.name + " ")}
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Title */}
+              <b className="min-h-13 line-clamp-2">{game.name}</b>
 
-              {/* Steam Game Buttons */}
-              <div className="flex flex-row justify-between text-center">
-                <a className="p-2 bg-slate-700 rounded-xl cursor-pointer" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
-                <a className="p-2 bg-slate-700 rounded-xl cursor-pointer" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
-              </div>
-
-              <div className="group relative inline-block cursor-pointer w-full">
-                {game.score != -1 ? (
-                  <p>Total Score: {game.score}</p>
-                ) : (
-                  <p>Total Score: Unavailable</p>
-                )}
-                <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
-                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-                  <div>
-                    <b>Scoring</b>
-                    <p>+50% if Hours Played more than global average</p>
-                    <br />
-                    <p>+50% if all achievements are unlocked</p>
+              {/* Covers*/}
+              {game.game_cover != "No Cover" ? (
+                <div className="flex relative aspect-2/3 overflow-hidden rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200">
+                  <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
+                  <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
+                </div>
+              ) : (
+                <div className='relative aspect-2/3 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200'>
+                  <div className='absolute font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
+                    {Array(200).fill(game.name + " ")}
                   </div>
                 </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex flex-row justify-between text-center gap-2 my-2">
+                <a className="p-2 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
+                <a className="p-2 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
               </div>
 
+              {/* Game Stats */}
+              <div className="space-y-3">
+                {/* Total Score/Progress Bar */}
+                <div className="group relative inline-block cursor-pointer w-full">
+                  {game.score != -1 ? (
+                    <p>Total Score: {game.score}</p>
+                  ) : (
+                    <p>Total Score: Unavailable</p>
+                  )}
+                  <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
+                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                    <div>
+                      <b>Scoring</b>
+                      <p>+50% if Hours Played more than global average</p>
+                      <br />
+                      <p>+50% if all achievements are unlocked</p>
+                    </div>
+                  </div>
+                </div>
 
-              {game.playtime_forever / 60 < 1 ? (
-                <p>Hours Played: {game.playtime_forever} minutes</p>
-              ) : (
-                <p>Hours Played: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
-              )}
+                {/* Hours Played */}
+                {game.playtime_forever / 60 < 1 ? (
+                  <p>Hours Played: {game.playtime_forever} minutes</p>
+                ) : (
+                  <p>Hours Played: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+                )}
 
-              {game.global_median_playtime != -1 ? (game.global_median_playtime / 60 < 1 ? (
-                <p>Average Global Playtime: {game.global_median_playtime % 60} minutes </p>
-              ) : (
-                <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
-              )) : (
-                <p>Average Global Playtime: Unavailable</p>
-              )}
+                {/* Global Median Playtime */}
+                {game.global_median_playtime != -1 ? (game.global_median_playtime / 60 < 1 ? (
+                  <p>Average Global Playtime: {game.global_median_playtime % 60} minutes </p>
+                ) : (
+                  <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+                )) : (
+                  <p>Average Global Playtime: Unavailable</p>
+                )}
 
-              {game.total_achievements ? (
-                <p>Achievements: {game.percent_of_achievements}% unlocked</p>
-              ) : (
-                <p>No unlockable achievements</p>
-              )}
+                {/* Achievements */}
+                {game.total_achievements ? (
+                  <p>Achievements: {game.percent_of_achievements}% unlocked</p>
+                ) : (
+                  <p>No unlockable achievements</p>
+                )}
+              </div>
             </div>
           )) : (
+            // No games in category
             <p>No games to display</p>
           )}
         </div>
@@ -419,11 +430,9 @@ export default function Homepage() {
       return
     }
 
-    setAccountDataLoading(true)
+    setLoadingMessage("Getting User Data")
     await GetUserDetails(steamid)
-    setAccountDataLoading(false)
 
-    setGameDataLoading(true)
     // Get steam games and check if null
     const result = await FetchSteamGames(steamid)
     if (!result) {
@@ -431,6 +440,7 @@ export default function Homepage() {
     }
 
     // Concat data
+    setLoadingMessage("Interpreting Data")
     const { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers } = result
     await CombineGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
 
@@ -443,7 +453,7 @@ export default function Homepage() {
     }
     setAccountCost(tempGameSum / 100)
 
-    setGameDataLoading(false)
+    setLoadingMessage("")
   }
 
   // Get steamid from url
@@ -461,17 +471,12 @@ export default function Homepage() {
   return (
     <main className="flex min-h-screen flex-col py-20 px-16 items-center justify-center">
       {/* Loading user account info */}
-      {accountDataLoading ? (
-        <div className='flex flex-row space-x-6'>
-          <p className='text-2xl'>Loading User Information</p>
+      {loadingMessage ? (
+        <div className='flex flex-col space-y-3 items-center'>
+          <p className='text-2xl'>{loadingMessage}</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
         // Loading Game info
-      ) : gameDataLoading ? (
-        <div className='flex flex-row space-x-6'>
-          <p className='text-2xl'>Loading Game Data</p>
-          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
-        </div>
       ) : privacyError ? (
         <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-5 rounded-xl">
           <p className="text-2xl">Your account data was unable to be viewed</p>
@@ -481,7 +486,7 @@ export default function Homepage() {
           <p>• Make sure "Game details" is "Public"</p>
           <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
         </div>
-      ) : (
+      ) : userSummary ? (
         <div>
           {/* Header User Section */}
           {errorHeader && (
@@ -496,7 +501,7 @@ export default function Homepage() {
 
               <div className='flex flex-row space-x-10'>
                 <img src={userSummary.avatarfull} />
-                <div className="flex flex-col space-y-3">
+                <div className="flex flex-col space-y-2">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
                     <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
@@ -515,9 +520,12 @@ export default function Homepage() {
                     <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
                   )}
                   <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
-                  <p>{userGameData.length} Games</p>
-                  <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
-                  <p>Note: This estimate does not factor in discounts or microstransactions and some prices may not have been available</p>
+                  <p>Total Games: {userGameData.length}</p>
+                  <div>
+                    <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
+                    <p>Average Cost Per Game: ${(accountCost / userGameData.length).toFixed(2)}</p>
+                  </div>
+                  <p>Note: This estimate does not factor in discounts or microstransactions</p>
                 </div>
               </div>
             </div>
@@ -525,7 +533,7 @@ export default function Homepage() {
 
           <div className="flex flex-row justify-between py-5">
             <p className="text-2xl">Go give yo games some love</p>
-            <button className='p-2 outline-1 outline-black rounded-xl bg-sky-950 text-gray-200 cursor-pointer' onClick={FetchAllData}>Refresh Account Data</button>
+            <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 
           <div className='flex flex-col gap-y-10'>
@@ -578,7 +586,7 @@ export default function Homepage() {
             />
           </div>
         </div>
-      )}
+      ) : null }
     </main>
   )
 }
