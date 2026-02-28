@@ -1,56 +1,40 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 
 // User Player Achievements Function
 export async function POST(request) {
-  const { id: steamUserID, gameData: games } = await request.json()
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-  const savedBatchResults = []
+  const { id: steamUserID, gameData: games } = await request.json();
+  const results = []
 
-  // Format list of owned game appids into string for achievement api
-  let formattedIDs = []
-  let x = 0
-  for (const game of games.games) {
-    formattedIDs.push(`&appids[${x}]=${game.appid}`)
-    x++
-  }
+  // Go through batches of games
+  for (let i = 0; i < games.games.length; i += 500) {
+    const batch = games.games.slice(i, i+500)
 
-  // Batch an array into subarrays with even amoutns of data
-  const chunkArray = (array, chunkSize) => {
-    const numberOfChunks = Math.ceil(array.length / chunkSize)
+    // Format appids in a string to use in api
+    let formattedGames = ""
+    batch.forEach((game, index) => {
+      formattedGames += `&appids[${index}]=${game.appid}`;
+    })
 
-    return [...Array(numberOfChunks)]
-      .map((value, index) => {
-        return array.slice(index * chunkSize, (index + 1) * chunkSize)
-      })
-  }
-  const batchedIDs = chunkArray(formattedIDs, 500)
-
-  // Function for calling each batch
-  async function callApi(param, apiNumber) {
+    // Fetch api using appids
     try {
-      const response = await fetch(`https://api.steampowered.com/IPlayerService/GetTopAchievementsForGames/v1/?key=${process.env.STEAM_API_KEY}&steamid=${steamUserID}&language=en${param}`)
+      const response = await fetch(
+        `https://api.steampowered.com/IPlayerService/GetTopAchievementsForGames/v1/?key=${process.env.STEAM_API_KEY}&steamid=${steamUserID}&language=en&max_achievements=10000${formattedGames}`
+      )
+
+      // invalid response
       if (!response.ok) {
-        throw new Error(`API ${apiNumber} request failed`)
+        console.error("Steam error:", response.status)
       }
 
-      // save data
+      // Save data
       const data = await response.json()
-      return data
-
-      // output error
+      if (data?.response?.games) {
+        results.push(...data.response.games)
+      }
     } catch (e) {
-      console.error(`Achievement API Error ${apiNumber}: `, e.message)
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+      console.error("Batch failed:", e.message)
     }
   }
 
-  // Runs each batch using the callAPI function
-  for (const batch of batchedIDs) {
-    const promises = batch.map((param, index) => callApi(param, index + 1))
-    const results = await Promise.all(promises)
-    savedBatchResults.push(...results)
-    // await delay(1000)
-  }
-
-  return NextResponse.json(savedBatchResults)
+  return NextResponse.json(results)
 }

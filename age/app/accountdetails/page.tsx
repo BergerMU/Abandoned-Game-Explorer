@@ -123,6 +123,7 @@ export default function Homepage() {
       method: "POST",
       body: JSON.stringify({ id: steamid, gameData: ownedGames })
     })
+
     const userAchievements = await tempUserAchievements.json()
     console.log("User Achievements: ", userAchievements)
 
