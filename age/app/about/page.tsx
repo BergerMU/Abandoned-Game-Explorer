@@ -1,7 +1,7 @@
 export default function Homepage() {
 	return (
-		<div className="flex min-h-screen w-full flex-col items-center py-32 px-16 sm:items-start gap-5">
-			<div>
+    <div className="flex flex-col h-svh items-center p-8 sm:items-start gap-5">
+      <div>
 				<div className='text-3xl'>What's going on????</div>
 				<div>Uhhhhh i forgot</div>
 			</div>
@@ -16,6 +16,6 @@ export default function Homepage() {
 				<p>actually pls don't</p>
 			</div>
 			<div>(This is all temp text i swear)</div>
-		</div>
+    </div>
 	)
 }

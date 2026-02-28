@@ -76,16 +76,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen justify-center items-center space-y-5">
+    <div className="flex flex-col min-h-screen px-8 mt-16 items-center space-y-5">
+      {/* Instructions */}
       <p className="text-5xl">Explore your steam library!</p>
       <p>How to do it in 3 easy steps!</p>
       <p>1. Go to your steam profile and copy the URL</p>
       <p>2. Paste your account url in the search bar</p>
       <p>3. Hit enter</p>
+
       {/* Search Form */}
-      <div className="flex flex-row">
-        <form onSubmit={HandleSubmit} className='flex flex-row space-x-3'>
-          <input placeholder="Enter your steam account URL or steamid" onChange={e => setUserInput(e.target.value)} className="w-3xl p-3 h-3xl outline-1 outline-black rounded-2xl bg-sky-950" value={userInput}></input>
+      <div className="flex flex-row w-full justify-center">
+        <form onSubmit={HandleSubmit} className='flex w-full space-x-3'>
+          <input placeholder="Enter your steam account URL or steamid" onChange={e => setUserInput(e.target.value)} className="w-full p-3 h-3xl outline-1 outline-black rounded-2xl bg-sky-950" value={userInput}></input>
           <button type='submit' className="bg-sky-800 p-3 rounded-3xl cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />

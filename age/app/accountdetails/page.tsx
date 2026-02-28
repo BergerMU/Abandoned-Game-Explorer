@@ -284,67 +284,69 @@ export default function Homepage() {
 
     return (
       <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-        <div className="flex flex-row justify-between items-start">
+        <div className="flex flex-col md:flex-row justify-between items-start">
           <div className='flex flex-col mb-2 gap-2 max-w-120 min-w-min'>
             <b className='text-3xl'>{header}</b>
             <p className="text-2xl">{description}</p>
             <p>{subtext}</p>
           </div>
 
-          <button type="button"
-            onClick={() => requestSort('score')}
-            className="cursor-pointer">
-            {sortConfig?.key === 'score' ? sortConfig?.direction === "descending" ? (
-              <p>Score ▼</p>
-            ) : (
-              <p>Score ▲</p>
-            ) : (
-              <p>Score</p>
-            )}
-          </button>
+          <div className="flex flex-col md:flex-row items-start gap-3">
+            <button type="button"
+              onClick={() => requestSort('score')}
+              className="cursor-pointer">
+              {sortConfig?.key === 'score' ? sortConfig?.direction === "descending" ? (
+                <p>Score ▼</p>
+              ) : (
+                <p>Score ▲</p>
+              ) : (
+                <p>Score</p>
+              )}
+            </button>
 
-          <button type="button"
-            onClick={() => requestSort('playtime_forever')}
-            className="cursor-pointer">
-            {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
-              <p>Hours Played ▼</p>
-            ) : (
-              <p>Hours Played ▲</p>
-            ) : (
-              <p>Hours Played</p>
-            )}
-          </button>
+            <button type="button"
+              onClick={() => requestSort('playtime_forever')}
+              className="cursor-pointer">
+              {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
+                <p>Hours Played ▼</p>
+              ) : (
+                <p>Hours Played ▲</p>
+              ) : (
+                <p>Hours Played</p>
+              )}
+            </button>
 
-          <button type="button"
-            onClick={() => requestSort('global_median_playtime')}
-            className="cursor-pointer">
-            {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
-              <p>Global Average Playtime ▼</p>
-            ) : (
-              <p>Global Average Playtime ▲</p>
-            ) : (
-              <p>Global Average Playtime</p>
-            )}
-          </button>
+            <button type="button"
+              onClick={() => requestSort('global_median_playtime')}
+              className="cursor-pointer">
+              {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
+                <p>Global Average Playtime ▼</p>
+              ) : (
+                <p>Global Average Playtime ▲</p>
+              ) : (
+                <p>Global Average Playtime</p>
+              )}
+            </button>
 
-          <button type="button"
-            onClick={() => requestSort('percent_of_achievements')}
-            className="cursor-pointer">
-            {sortConfig?.key === 'percent_of_achievements' ? sortConfig?.direction === "descending" ? (
-              <p>Achievements Unlocked ▼</p>
-            ) : (
-              <p>Achievements Unlocked ▲</p>
-            ) : (
-              <p>Achievements Unlocked</p>
-            )}
-          </button>
+            <button type="button"
+              onClick={() => requestSort('percent_of_achievements')}
+              className="cursor-pointer">
+              {sortConfig?.key === 'percent_of_achievements' ? sortConfig?.direction === "descending" ? (
+                <p>Achievements Unlocked ▼</p>
+              ) : (
+                <p>Achievements Unlocked ▲</p>
+              ) : (
+                <p>Achievements Unlocked</p>
+              )}
+            </button>
 
-          <div className="flex flex-col text-right">
-            <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
-            <p className='text-2xl'>{items.length} Games</p>
+            <div className="flex flex-col text-right">
+              <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
+              <p className='text-2xl'>{items.length} Games</p>
+            </div>
           </div>
         </div>
-        <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 max-h-150 overflow-y-auto space-y-8 gap-5 p-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 max-h-150 overflow-y-auto gap-y-14 gap-x-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
             <div className="flex flex-col h-full" key={game.appid}>
 
@@ -367,25 +369,24 @@ export default function Homepage() {
 
               {/* Buttons */}
               <div className="flex flex-row justify-between text-center gap-2 my-2">
-                <a className="p-2 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
-                <a className="p-2 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
+                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
+                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
               </div>
 
               {/* Game Stats */}
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {/* Total Score/Progress Bar */}
-                <div className="group relative inline-block cursor-pointer w-full">
+                <div className="group relative inline-block cursor-pointer w-full space-y-1">
                   {game.score != -1 ? (
-                    <p>Total Score: {game.score}</p>
+                    <p className="p-0.5">Total Score: {game.score}</p>
                   ) : (
-                    <p>Total Score: Unavailable</p>
+                    <p className="bg-red-500 rounded-xl p-0.5">Total Score: Unavailable</p>
                   )}
                   <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                     <div>
                       <b>Scoring</b>
-                      <p>+50% if Hours Played more than global average</p>
-                      <br />
+                      <p>+50% Played more than average</p>
                       <p>+50% if all achievements are unlocked</p>
                     </div>
                   </div>
@@ -404,14 +405,14 @@ export default function Homepage() {
                 ) : (
                   <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
                 )) : (
-                  <p>Average Global Playtime: Unavailable</p>
+                  <p className="bg-red-500 rounded-xl p-0.5">Average Global Playtime: Unavailable</p>
                 )}
 
                 {/* Achievements */}
                 {game.total_achievements ? (
-                  <p>Achievements: {game.percent_of_achievements}% unlocked</p>
+                  <p>Achievements: {game.percent_of_achievements}%</p>
                 ) : (
-                  <p>No unlockable achievements</p>
+                  <p>No achievements</p>
                 )}
               </div>
             </div>
@@ -469,7 +470,7 @@ export default function Homepage() {
   }, [steamid])
 
   return (
-    <main className="flex min-h-screen flex-col py-20 px-16 items-center justify-center">
+    <main className="flex min-h-screen flex-col p-8 items-center justify-center">
       {/* Loading user account info */}
       {loadingMessage ? (
         <div className='flex flex-col space-y-3 items-center'>
@@ -496,11 +497,13 @@ export default function Homepage() {
           )}
           <div className='flex'>
             {/* Account Information */}
-            <div className='flex flex-col p-3'>
-              <p className="text-4xl mb-2">{userSummary.personaname}</p>
+            <div className='flex flex-col md:flex-row gap-5 p-3'>
+              <div className="flex flex-col">
+                <p className="text-4xl mb-2">{userSummary.personaname}</p>
+                <img src={userSummary.avatarfull} />
+              </div>
 
               <div className='flex flex-row space-x-10'>
-                <img src={userSummary.avatarfull} />
                 <div className="flex flex-col space-y-2">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
@@ -586,7 +589,7 @@ export default function Homepage() {
             />
           </div>
         </div>
-      ) : null }
+      ) : null}
     </main>
   )
 }
