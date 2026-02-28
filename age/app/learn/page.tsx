@@ -1,6 +1,6 @@
 export default function Homepage() {
   return (
-    <div className="flex flex-col items-center p-8 sm:items-start gap-5">
+    <div className="flex flex-col h-svh items-center p-8 sm:items-start gap-5">
       <div>
         <div className='text-3xl'>How does scoring work?</div>
         <ul className='space-y-5 list-disc list-inside'>

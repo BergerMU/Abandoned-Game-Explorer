@@ -23,7 +23,7 @@ export async function POST(request) {
   }
   const batchedIDs = chunkArray(formattedIDs, 50)
 
-  // Gets the api request itself
+  // Function for calling each batch
   async function callApi(param, apiNumber) {
     try {
       const response = await fetch(`https://steamspy.com/api.php?request=appdetails&appid=${param}`)
@@ -37,8 +37,8 @@ export async function POST(request) {
 
       // Output error
     } catch (e) {
-      console.error(`Steam Spy Error ${apiNumber}: `, e.message);
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+      console.error(`Steam Spy Error ${apiNumber}: `, e.message)
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
   }
 

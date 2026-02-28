@@ -507,6 +507,12 @@ export default function Homepage() {
                 <div className="flex flex-col space-y-2">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
+                    { accountScore != 100 ? (
+                      <p className="text-sm">Try to get to {Math.floor(accountScore / 5) * 5 + 5}!</p>
+                    ) : (
+                      <p className="text-sm">CONGRATS YOU HAVE A 100% ACCOUNT SCORE THAT'S AWESOME YOU WORKED SO HARD</p>
+                    )}
+
                     <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
                     <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                       <div>
