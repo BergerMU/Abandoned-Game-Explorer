@@ -322,7 +322,7 @@ export default function Homepage() {
     return (
       <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
         <div className="flex flex-col md:flex-row justify-between items-start">
-          <div className='flex flex-col mb-2 gap-2 max-w-120 min-w-min'>
+          <div className='flex flex-col gap-2 max-w-120 min-w-min'>
             <b className='text-3xl'>{header}</b>
             <p className="text-2xl">{description}</p>
             <p>{subtext}</p>
@@ -392,12 +392,12 @@ export default function Homepage() {
 
               {/* Covers*/}
               {game.game_cover != "No Cover" ? (
-                <div className="flex relative aspect-2/3 overflow-hidden md:my-2 rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105">
+                <div className="flex relative aspect-2/3 overflow-hidden md:m-4 justify-center rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">
                   <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
                   <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
                 </div>
               ) : (
-                <div className='relative aspect-2/3 md:my-2 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
+                <div className='relative aspect-2/3 md:my-4 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
                   <div className='absolute font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
                     {Array(200).fill(game.name + " ")}
                   </div>
@@ -420,7 +420,7 @@ export default function Homepage() {
                     <p className="bg-red-500 rounded-xl p-0.5">Total Score: Unavailable</p>
                   )}
                   <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
-                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-1.5">
                     <div>
                       <b>Scoring</b>
                       <p>+50% if you played more than the average player</p>
@@ -537,7 +537,7 @@ export default function Homepage() {
             <div className='flex flex-col md:flex-row gap-5 p-3'>
               <div className="flex flex-col">
                 <p className="text-4xl mb-2">{userSummary.personaname}</p>
-                <img src={userSummary.avatarfull} />
+                <img src={userSummary.avatarfull} className="rounded-xl m-2 hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110"/>
               </div>
 
               <div className='flex flex-row space-x-10'>
@@ -579,12 +579,12 @@ export default function Homepage() {
 
           <div className="flex flex-row justify-between">
             <p className="text-2xl">Go give yo games some love</p>
-            <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105' onClick={FetchAllData}>Refresh Account Data</button>
+            <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
             {categories.map((category, index) => (
-              <button onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105">{category.header}</button>
+              <button onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">{category.header}</button>
             ))}
           </div>
 
