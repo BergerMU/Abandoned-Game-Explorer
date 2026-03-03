@@ -392,12 +392,12 @@ export default function Homepage() {
 
               {/* Covers*/}
               {game.game_cover != "No Cover" ? (
-                <div className="flex relative aspect-2/3 overflow-hidden md:m-4 justify-center rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">
+                <div className="flex relative aspect-2/3 md:m-4 overflow-hidden  justify-center rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">
                   <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
                   <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
                 </div>
               ) : (
-                <div className='relative aspect-2/3 md:my-4 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
+                <div className='relative aspect-2/3 md:m-4 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
                   <div className='absolute font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
                     {Array(200).fill(game.name + " ")}
                   </div>
@@ -405,7 +405,7 @@ export default function Homepage() {
               )}
 
               {/* Buttons */}
-              <div className="flex flex-row justify-between text-center gap-2 my-2">
+              <div className="flex flex-row justify-between text-center gap-2 m-0.5">
                 <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
                 <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
               </div>
