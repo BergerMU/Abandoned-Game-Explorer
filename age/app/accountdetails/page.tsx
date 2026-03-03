@@ -9,6 +9,7 @@ export default function Homepage() {
   const router = useRouter()
   const [loadingMessage, setLoadingMessage] = useState("")
   const [privacyError, setPrivacyError] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(0)
 
   // Account Variables
   const [steamid, setSteamid] = useState<string | null>(null)
@@ -37,6 +38,41 @@ export default function Homepage() {
     unlocked_achievements_count: number
   }
   const [userGameData, setUserGameData] = useState<Game[]>([])
+
+  // List of the game categories
+  const categories = [
+    {
+      header: "Recently Played",
+      games: userGameData.filter(x => x.played_within_two_weeks),
+      description: "Played within the last two weeks",
+      subtext: "",
+    }, {
+      games: userGameData.filter(a => a.playtime_forever === 0),
+      header: "Not Played:(",
+      description: "Games with 0 hours played",
+      subtext: "Why haven't you played this yet? install them at least!",
+    }, {
+      games: userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10),
+      header: "Barely Touched",
+      description: "Less than 10 minutes of time played",
+      subtext: "At least give them a chance!",
+    }, {
+      games: userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100),
+      header: "Almost Complete!",
+      description: "Games with at least a 75% achievements and 80% score",
+      subtext: "",
+    }, {
+      games: userGameData.filter(a => a.score == 100),
+      header: "High Score!",
+      description: "Games that score at least a 100%",
+      subtext: "Level Up! (or something)",
+    }, {
+      games: userGameData,
+      header: "All your games!",
+      description: "",
+      subtext: "",
+    }
+  ]
 
   // Calculate a score of how much a user has completed their game
   function CalculateScore(userPlaytime: number, globalPlaytime: number, totalAchievements: number, unlockedAchievements: number) {
@@ -105,7 +141,7 @@ export default function Homepage() {
     console.log("Steam Spy Game Data: ", steamSpyData)
 
     if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
-      setErrorHeader("Games details, account score, and estimated account cost may be inaccurate due to the Steam Spy API infrastucture globally being overloaded. The affected games will say Unavailable for its fields")
+      setErrorHeader("Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate.")
     }
 
     // Fetch owned game covers
@@ -347,7 +383,7 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 max-h-150 overflow-y-auto gap-y-14 gap-x-5 p-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 h-150 overflow-y-auto gap-y-14 gap-x-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
             <div className="flex flex-col h-full" key={game.appid}>
 
@@ -356,12 +392,12 @@ export default function Homepage() {
 
               {/* Covers*/}
               {game.game_cover != "No Cover" ? (
-                <div className="flex relative aspect-2/3 overflow-hidden rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200">
+                <div className="flex relative aspect-2/3 overflow-hidden md:my-2 rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105">
                   <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
                   <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
                 </div>
               ) : (
-                <div className='relative aspect-2/3 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200'>
+                <div className='relative aspect-2/3 md:my-2 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
                   <div className='absolute font-bold inset-[-100] rotate-345 bg-repeat-x text-slate-600 cursor-default'>
                     {Array(200).fill(game.name + " ")}
                   </div>
@@ -370,8 +406,8 @@ export default function Homepage() {
 
               {/* Buttons */}
               <div className="flex flex-row justify-between text-center gap-2 my-2">
-                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
-                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
+                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" target="blank_" href={`https://store.steampowered.com/app/${game.appid}/`}>Visit Store</a>
+                <a className="p-1.5 bg-slate-700 text-sm rounded-xl cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" target="blank_" href={`https://steamcommunity.com/app/${game.appid}/guides`}>Visit Guides</a>
               </div>
 
               {/* Game Stats */}
@@ -387,8 +423,9 @@ export default function Homepage() {
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                     <div>
                       <b>Scoring</b>
-                      <p>+50% Played more than average</p>
-                      <p>+50% if all achievements are unlocked</p>
+                      <p>+50% if you played more than the average player</p>
+                      <br />
+                      <p>+50% if you unlocked all the achievements</p>
                     </div>
                   </div>
                 </div>
@@ -418,7 +455,6 @@ export default function Homepage() {
               </div>
             </div>
           )) : (
-            // No games in category
             <p>No games to display</p>
           )}
         </div>
@@ -471,7 +507,7 @@ export default function Homepage() {
   }, [steamid])
 
   return (
-    <main className="flex min-h-screen flex-col p-8 items-center justify-center">
+    <main className="flex min-h-screen flex-col p-2 md:p-8 items-center">
       {/* Loading user account info */}
       {loadingMessage ? (
         <div className='flex flex-col space-y-3 items-center'>
@@ -489,14 +525,14 @@ export default function Homepage() {
           <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
         </div>
       ) : userSummary ? (
-        <div>
+        <div className="space-y-3 w-full">
           {/* Header User Section */}
           {errorHeader && (
-            <div className="bg-red-600 p-3 w-full space-y-5 rounded-xl">
+            <div className="bg-red-600 p-3 w-fit rounded-xl">
               <p>{errorHeader}</p>
             </div>
           )}
-          <div className='flex'>
+          <div>
             {/* Account Information */}
             <div className='flex flex-col md:flex-row gap-5 p-3'>
               <div className="flex flex-col">
@@ -508,7 +544,7 @@ export default function Homepage() {
                 <div className="flex flex-col space-y-2">
                   <div className="group relative inline-block cursor-pointer w-50">
                     <p className='text-2xl'>Account Score: {accountScore}</p>
-                    { accountScore != 100 ? (
+                    {accountScore != 100 ? (
                       <p className="text-sm">Try to get to {Math.floor(accountScore / 5) * 5 + 5}!</p>
                     ) : (
                       <p className="text-sm">CONGRATS YOU HAVE A 100% ACCOUNT SCORE THAT'S AWESOME YOU WORKED SO HARD</p>
@@ -541,59 +577,19 @@ export default function Homepage() {
             </div>
           </div>
 
-          <div className="flex flex-row justify-between py-5">
+          <div className="flex flex-row justify-between">
             <p className="text-2xl">Go give yo games some love</p>
-            <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200' onClick={FetchAllData}>Refresh Account Data</button>
+            <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 
-          <div className='flex flex-col gap-y-10'>
-            {/* Recently Played Games */}
-            <CategoryTable
-              games={userGameData.filter(x => x.played_within_two_weeks)}
-              header="Recently Played"
-              description="Played within the last two weeks"
-              subtext=""
-            />
+          <div className="grid grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
+            {categories.map((category, index) => (
+              <button onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105">{category.header}</button>
+            ))}
+          </div>
 
-            {/* Games that haven't been played */}
-            <CategoryTable
-              games={userGameData.filter(a => a.playtime_forever === 0)}
-              header="Not Played:("
-              description="Games with 0 hours played"
-              subtext="Why haven't you played this yet? install them at least!"
-            />
-
-            {/* Games with less than 10 minutes of playtime */}
-            <CategoryTable
-              games={userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10)}
-              header="Bearly Touched"
-              description="Less than 10 minutes of time played"
-              subtext="At least give them a chance!"
-            />
-
-            {/* Games that are almost at 100% */}
-            <CategoryTable
-              games={userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100)}
-              header="Almost Complete!"
-              description="Games with at least a 75% achievements and 80% score"
-              subtext=""
-            />
-
-            {/* 100% Score Games */}
-            <CategoryTable
-              games={userGameData.filter((a) => a.score == 100)}
-              header="High Score!"
-              description="Games that score at least a 100%"
-              subtext="Level Up! (or something)"
-            />
-
-            {/* All Games */}
-            <CategoryTable
-              games={userGameData}
-              header="All your games!"
-              description=""
-              subtext=""
-            />
+          <div>
+            <CategoryTable {...categories[selectedCategory]} />
           </div>
         </div>
       ) : null}

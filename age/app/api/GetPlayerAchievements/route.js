@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
 
 // User Player Achievements Function
 export async function POST(request) {
-  const { id: steamUserID, gameData: games } = await request.json();
+  const { id: steamUserID, gameData: games } = await request.json()
   const results = []
 
   // Go through batches of games
@@ -12,7 +12,7 @@ export async function POST(request) {
     // Format appids in a string to use in api
     let formattedGames = ""
     batch.forEach((game, index) => {
-      formattedGames += `&appids[${index}]=${game.appid}`;
+      formattedGames += `&appids[${index}]=${game.appid}`
     })
 
     // Fetch api using appids
