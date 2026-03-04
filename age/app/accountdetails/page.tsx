@@ -68,7 +68,7 @@ export default function Homepage() {
       subtext: "Level Up! (or something)",
     }, {
       games: userGameData,
-      header: "All your games!",
+      header: "All games",
       description: "",
       subtext: "",
     }
@@ -379,7 +379,7 @@ export default function Homepage() {
 
             <div className="flex flex-col text-right">
               <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
-              <p className='text-2xl'>{items.length} Games</p>
+              <p className='text-2xl'>{items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).length} Games</p>
             </div>
           </div>
         </div>
@@ -507,7 +507,7 @@ export default function Homepage() {
   }, [steamid])
 
   return (
-    <main className="flex min-h-screen flex-col p-2 md:p-8 items-center">
+    <main className="flex flex-col p-2 md:p-8 items-center">
       {/* Loading user account info */}
       {loadingMessage ? (
         <div className='flex flex-col space-y-3 items-center'>
@@ -584,7 +584,7 @@ export default function Homepage() {
 
           <div className="grid grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
             {categories.map((category, index) => (
-              <button onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">{category.header}</button>
+              <button key={category.header} onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">{category.header}</button>
             ))}
           </div>
 
