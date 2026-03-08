@@ -21,6 +21,10 @@ export default function Homepage() {
           <li>If prompted select refund method then select a refund reason and finally hit submit</li>
         </ul>
       </div>
+      <div className="space-y-3">
+        <div className='text-3xl'>Attributions</div>
+        <div>BMO Faces created by Cherry Honey on <a className="text-blue-300" href="https://www.figma.com/community/file/1379945530999597632" target="_blank">Figma</a></div>
+      </div>
     </div>
   )
 }

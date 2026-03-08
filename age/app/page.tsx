@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { escape } from "node:querystring"
 
 export default function HomePage() {
   const router = useRouter()
@@ -46,7 +45,7 @@ export default function HomePage() {
     // input is NOT a valid username
     if (tempUserID.status == 500) {
       // Test if url had a valid steamid
-      const tempUserSummary = await fetch('./api/GetPlayerSummary', {
+      const tempUserSummary = await fetch('/api/GetPlayerSummary', {
         method: "POST",
         body: JSON.stringify({ id: parsedUserInput })
       })
