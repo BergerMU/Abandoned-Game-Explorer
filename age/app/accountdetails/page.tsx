@@ -560,7 +560,7 @@ export default function Homepage() {
                 {game.total_achievements ? (
                   <p>Achievements: {game.percent_of_achievements}%</p>
                 ) : (
-                  <p>No achievements</p>
+                  <p>Game has no achievements</p>
                 )}
               </div>
             </div>
@@ -651,8 +651,8 @@ export default function Homepage() {
               {/* Username and profile picture */}
               <div className="flex flex-col">
                 <p className="text-4xl mb-2">{userSummary.personaname}</p>
-                { pibbleMode ? (
-                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"}/>
+                {pibbleMode ? (
+                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
                 ) : (
                   <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
                 )}
