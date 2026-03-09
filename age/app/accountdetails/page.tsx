@@ -94,8 +94,9 @@ export default function Homepage() {
   const [accountScore, setAccountScore] = useState(0)
   const [accountCost, setAccountCost] = useState(0)
   const [errorHeader, setErrorHeader] = useState("")
+  const [pibbleMode, setPibbleMode] = useState(false)
 
-  function getRandomInt(max: number) {
+  function GetRandomInt(max: number) {
     return Math.floor(Math.random() * max)
   }
 
@@ -264,7 +265,7 @@ export default function Homepage() {
     // Accounts for division by zero errors
     if (combinedData.length > 0) {
       setAccountScore(Math.round(tempAccountScore / totalValidGames))
-      // setAccountScore(80)
+      // setAccountScore(0)
     } else {
       setAccountScore(0)
     }
@@ -286,57 +287,56 @@ export default function Homepage() {
     if (accountScore == 0) {
       // Face Object IDs and Emotion Responses
       let possibleEmotions = ["Battery Low... Shutdown"]
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
       return "2ed29224-a9eb-4940-964a-2a2f9f60493e"
 
     } else if (accountScore > 0 && accountScore < 20) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["dd05b505-4d37-45e0-94a0-e5f0b7ad3b34", "394fd309-8225-42aa-889a-95247c8a27b9", "f399ad6c-a7ca-4e95-b171-d8cd33ecc0e2", "10a76597-6d84-45cb-948f-58e07e589454"]
-      let possibleEmotions = ["I think I am dying. But that's okay, BMO always bounces back!"]
+      let possibleEmotions = ["I think I am dying. But that's okay, BMO always bounces back!", "BMO is not feeling well..."]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
 
     } else if (accountScore >= 20 && accountScore < 40) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["8ff2987c-5b27-4410-9310-ec89579befec", "2b51585c-1cbe-4e0e-95a8-185bcc59a978", "86889eed-6296-442e-928e-591cbbebf297", "6d078ace-c328-46a5-ba94-faf592d2e0a1"]
-      let possibleEmotions = ["BMO is not talking to you right now...", "What the flip!"]
+      let possibleEmotions = ["BMO is not talking to you right now...", "What the flip!", "This is bad biscuts", "Ice King would treat me better than this >:("]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
 
     } else if (accountScore >= 40 && accountScore < 60) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["67e91e88-ce6c-4649-933f-946bbd98291c", "db908d00-5319-4628-a063-c2f927dd1a2d"]
-      let possibleEmotions = ["I am incapable of emotion, but you are making me chafed!", "This is all Bloobalooby"]
+      let possibleEmotions = ["What the Stuff!", "Oh my glob", "Adventure Time!"]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
 
     } else if (accountScore >= 60 && accountScore < 80) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["bcced30c-eeab-4aaf-866e-b83feb63ae99", "1de9ed4a-f265-46d6-b1d9-7fc4fc809568", "5db03b81-3033-44ac-8f19-afeab808a512", "a83cc717-0a00-47cc-b55c-4b92fc052dc7"]
-      let possibleEmotions = ["This does compute!"]
+      let possibleEmotions = ["This does compute!", "This is all Bloobalooby"]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
 
     } else if (accountScore >= 80 && accountScore < 100) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["38533fbf-2fca-4b73-9548-bd9e3861648c", "896de8f9-dc00-47ba-b582-f63ccf51798a", "e14a495d-9f06-4383-906e-241ea3e9748c", "f7987e29-296a-493f-a8f4-d341fb66db83"]
       let possibleEmotions = ["Who wants to play video games?"]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
 
     } else {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = ["ef65323b-fcca-4e94-93ba-dfe2b4a212ac", "ec904fe9-1f25-4792-897a-720e5a216226", "521893b8-3ffb-4535-92af-14cecd87e7ef"]
-      let possibleEmotions = ["Mathematical", "Algebraic", "Check Please!"]
+      let possibleEmotions = ["BMO is Mathematical", "Algebraic", "Check Please!"]
 
-      setEmotion(possibleEmotions[getRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[getRandomInt(objectFaceIDs.length)]
+      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
+      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
     }
   }
 
@@ -344,27 +344,7 @@ export default function Homepage() {
     // Set global spline scene, bmo object, and face object
     splineScene.current = spline
     bmoParent.current = spline.findObjectByName("BMO_Parent")
-    const bmo = spline.findObjectByName("BMO")
     bmoFace.current = spline.findObjectById(GetBMOState())
-
-    if (!bmo) return
-    const updateScale = () => {
-      if (window.innerWidth <= 768) {
-        bmo.scale.x = 0.60
-        bmo.scale.y = 0.60
-        bmo.scale.z = 0.60
-      } else if (window.innerWidth <= 1024) {
-        bmo.scale.x = 0.45
-        bmo.scale.y = 0.45
-        bmo.scale.z = 0.45
-      } else {
-        bmo.scale.x = 1
-        bmo.scale.y = 1
-        bmo.scale.z = 1
-      }
-    }
-
-    updateScale()
 
     if (bmoFace.current) {
       bmoFace.current.position.z += 600
@@ -381,12 +361,19 @@ export default function Homepage() {
       bmoFace.current.position.z += 600
 
       let possibleAdvice = ["Check game guides to get the most out of your games", "Try sorting your games in each category", "I'll get happier the higher your account score is!"]
-      setAdvice(possibleAdvice[getRandomInt(possibleAdvice.length)])
+      setAdvice(possibleAdvice[GetRandomInt(possibleAdvice.length)])
     }
   }
 
+  // place bmo back to origin
+  function ResetBMO() {
+    bmoParent.current.position.x = 0
+    bmoParent.current.position.y = 50
+    bmoParent.current.position.z = 0
+  }
+
   // Takes in array of user games and sorts them based on categories
-  function useSortableData<T extends Record<string, any>>(
+  function UseSortableData<T extends Record<string, any>>(
     items: T[],
     config: SortConfig<T> = null
   ) {
@@ -428,7 +415,7 @@ export default function Homepage() {
   }
 
   const CategoryTable = ({ header, subtext, description, games }: Category) => {
-    const { items, requestSort, sortConfig } = useSortableData(games, {
+    const { items, requestSort, sortConfig } = UseSortableData(games, {
       key: "global_median_playtime",
       direction: "descending"
     })
@@ -438,68 +425,74 @@ export default function Homepage() {
 
     return (
       <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
-        <div className="flex flex-col md:flex-row justify-between items-start">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-3">
           <div className='flex flex-col gap-2 max-w-120 min-w-min'>
             <b className='text-3xl'>{header}</b>
             <p className="text-2xl">{description}</p>
             <p>{subtext}</p>
           </div>
 
-          <div className="flex flex-col md:flex-row items-start gap-3">
-            <button type="button"
-              onClick={() => requestSort('score')}
-              className="cursor-pointer">
-              {sortConfig?.key === 'score' ? sortConfig?.direction === "descending" ? (
-                <p>Score ▼</p>
-              ) : (
-                <p>Score ▲</p>
-              ) : (
-                <p>Score</p>
-              )}
-            </button>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex flex-col space-y-2">
+              <b>Categories</b>
+              <div className="space-x-2 space-y-2">
+                <button type="button"
+                  onClick={() => requestSort('score')}
+                  className="cursor-pointer bg-slate-700 p-1 rounded-xl">
+                  {sortConfig?.key === 'score' ? sortConfig?.direction === "descending" ? (
+                    <p>Score ▼</p>
+                  ) : (
+                    <p>Score ▲</p>
+                  ) : (
+                    <p>Score</p>
+                  )}
+                </button>
 
-            <button type="button"
-              onClick={() => requestSort('playtime_forever')}
-              className="cursor-pointer">
-              {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
-                <p>Hours Played ▼</p>
-              ) : (
-                <p>Hours Played ▲</p>
-              ) : (
-                <p>Hours Played</p>
-              )}
-            </button>
+                <button type="button"
+                  onClick={() => requestSort('playtime_forever')}
+                  className="cursor-pointer bg-slate-700 p-1 rounded-xl">
+                  {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
+                    <p>Hours Played ▼</p>
+                  ) : (
+                    <p>Hours Played ▲</p>
+                  ) : (
+                    <p>Hours Played</p>
+                  )}
+                </button>
 
-            <button type="button"
-              onClick={() => requestSort('global_median_playtime')}
-              className="cursor-pointer">
-              {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
-                <p>Global Average Playtime ▼</p>
-              ) : (
-                <p>Global Average Playtime ▲</p>
-              ) : (
-                <p>Global Average Playtime</p>
-              )}
-            </button>
+                <button type="button"
+                  onClick={() => requestSort('global_median_playtime')}
+                  className="cursor-pointer bg-slate-700 p-1 rounded-xl">
+                  {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
+                    <p>Global Average Playtime ▼</p>
+                  ) : (
+                    <p>Global Average Playtime ▲</p>
+                  ) : (
+                    <p>Global Average Playtime</p>
+                  )}
+                </button>
 
-            <button type="button"
-              onClick={() => requestSort('percent_of_achievements')}
-              className="cursor-pointer">
-              {sortConfig?.key === 'percent_of_achievements' ? sortConfig?.direction === "descending" ? (
-                <p>Achievements Unlocked ▼</p>
-              ) : (
-                <p>Achievements Unlocked ▲</p>
-              ) : (
-                <p>Achievements Unlocked</p>
-              )}
-            </button>
+                <button type="button"
+                  onClick={() => requestSort('percent_of_achievements')}
+                  className="cursor-pointer bg-slate-700 p-1 rounded-xl">
+                  {sortConfig?.key === 'percent_of_achievements' ? sortConfig?.direction === "descending" ? (
+                    <p>Achievements Unlocked ▼</p>
+                  ) : (
+                    <p>Achievements Unlocked ▲</p>
+                  ) : (
+                    <p>Achievements Unlocked</p>
+                  )}
+                </button>
+              </div>
+            </div>
 
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col sm:text-left md:text-right">
               <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
               <p className='text-2xl'>{items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).length} Games</p>
             </div>
           </div>
         </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 h-150 overflow-y-auto gap-y-14 gap-x-5 p-3">
           {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
             <div className="flex flex-col h-full" key={game.appid}>
@@ -614,8 +607,11 @@ export default function Homepage() {
   // Get steamid from url
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const id = params.get("steamid")
-    setSteamid(id)
+    setSteamid(params.get("steamid"))
+
+    if (params.get("pibble")) {
+      setPibbleMode(true)
+    }
   }, [])
 
   // Fetch user data on page load
@@ -650,43 +646,49 @@ export default function Homepage() {
             </div>
           )}
           <div>
-            {/* Account Information */}
-            <div className='flex flex-col md:flex-row justify-between p-3'>
+            {/* User Header */}
+            <div className='flex flex-col md:flex-row gap-4 p-3 justify-between'>
+              {/* Username and profile picture */}
               <div className="flex flex-col">
                 <p className="text-4xl mb-2">{userSummary.personaname}</p>
-                <img src={userSummary.avatarfull} className="rounded-xl m-2 hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" />
+                { pibbleMode ? (
+                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"}/>
+                ) : (
+                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
+                )}
               </div>
 
-              <div className='flex flex-row space-x-10'>
-                <div className="flex flex-col space-y-2">
-                  <div className="group relative inline-block cursor-pointer w-50">
-                    <p className='text-2xl'>Account Score: {accountScore}</p>
-                    <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
-                    <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-                      <div>
-                        <b>Account Scoring</b>
-                        <p>Your Account Score is the average score accross all of your games</p>
-                      </div>
+              {/* Account description */}
+              <div className="flex flex-col space-y-2 w-3/5">
+                <div className="group relative inline-block cursor-pointer w-50">
+                  <p className='text-2xl'>Account Score: {accountScore}</p>
+                  <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
+                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                    <div>
+                      <b>Account Scoring</b>
+                      <p>Your Account Score is the average score accross all of your games</p>
                     </div>
                   </div>
-
-                  {/* If user is offline, busy, away, snoozed */}
-                  {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-                    <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
-                  ) : (
-                    <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
-                  )}
-                  <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
-                  <p>Total Games: {userGameData.length}</p>
-                  <div>
-                    <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
-                    <p>Average Cost Per Game: ${(accountCost / userGameData.length).toFixed(2)}</p>
-                  </div>
-                  <p>Note: This estimate does not factor in discounts or microstransactions</p>
                 </div>
+
+                {/* If user is offline, busy, away, snoozed */}
+                {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
+                  <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
+                ) : (
+                  <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
+                )}
+                <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
+                <p>Total Games: {userGameData.length}</p>
+                <div>
+                  <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
+                  <p>Average Cost Per Game: ${(accountCost / userGameData.length).toFixed(2)}</p>
+                </div>
+                <p>Note: This estimate does not factor in discounts or microstransactions</p>
               </div>
-              <div className="rounded-xl h-4/5 w-full md:w-2/5">
-                <div className="bg-zinc-800 rounded-xl p-2 space-y-2">
+
+              {/* BMO */}
+              <div className="rounded-xl w-full h-96 md:w-3xl md:h-96 flex flex-col items-center">
+                <div className="bg-zinc-800 rounded-xl p-2 space-y-2 w-full">
                   <div>{emotion}</div>
                   <div>
                     {accountScore != 100 ? (
@@ -696,9 +698,10 @@ export default function Homepage() {
                     )}
                   </div>
                   <div>{advice}</div>
+                  <div onClick={ResetBMO} className="text-sm w-fit p-1 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">Reset Position</div>
                 </div>
-                <div className="w-full text-zinc-800 text-6xl text-center relative -top-8 -mb-15 cursor-default">🞃</div>
-                <Spline scene="https://draft.spline.design/tG6gZQCWPWFBMyyy/scene.splinecode" onLoad={LoadBMO} onSplineMouseDown={ClickBMO} />
+                <div className="w-min text-zinc-800 text-6xl relative -top-3 -mb-15 cursor-default">▼</div>
+                <Spline className="w-full flex-1" scene="https://draft.spline.design/tG6gZQCWPWFBMyyy/scene.splinecode" onLoad={LoadBMO} onSplineMouseDown={ClickBMO} />
               </div>
             </div>
           </div>
@@ -708,12 +711,14 @@ export default function Homepage() {
             <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 
+          {/* Category Headers */}
           <div className="grid grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
             {categories.map((category, index) => (
               <button key={category.header} onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">{category.header}</button>
             ))}
           </div>
 
+          {/* Category data */}
           <div>
             <CategoryTable {...categories[selectedCategory]} />
           </div>

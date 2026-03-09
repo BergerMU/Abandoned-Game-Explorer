@@ -7,14 +7,20 @@ export default function HomePage() {
   const router = useRouter()
   const [userInput, setUserInput] = useState("")
   const [searchError, setSearchError] = useState("")
+  const [pibbleMessage, setPibbleMessage] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // Get userid and redirect to account details page
   async function HandleSubmit(event: { preventDefault: () => void }) {
     event.preventDefault()
     let parsedUserInput = ""
+    const params = new URLSearchParams(window.location.search)
     setLoading(true)
     setSearchError("")
+
+    if (userInput.toLowerCase().includes("i am pibble")) {
+      router.push(`/?pibble=activated`)
+    }
 
     // Parse steam accounts with ID in their url for their username or steamid
     if (userInput.includes("steamcommunity.com/id/")) {
@@ -53,7 +59,11 @@ export default function HomePage() {
       // input is NOT a valid steamid
       const userSummary = await tempUserSummary.json()
       if (userSummary.players.length == 0) {
-        setSearchError("Can't find user account, make sure you copied the url directly from the steam profile page")
+        if (parsedUserInput.toLowerCase().includes("i am pibble")) {
+          setSearchError("Pibble Mode Activated")
+        } else {
+          setSearchError("Can't find user account, make sure you copied the url directly from the steam profile page")
+        }
         console.error("Couldn't find user account")
         setLoading(false)
 
@@ -62,7 +72,11 @@ export default function HomePage() {
         // Route to account details page
         setLoading(false)
         console.log(tempUserSummary)
-        router.push(`accountdetails/?steamid=${parsedUserInput}`)
+        if (params.get("pibble")) {
+          router.push(`accountdetails/?steamid=${parsedUserInput}&pibble=activated`)
+        } else {
+          router.push(`accountdetails/?steamid=${parsedUserInput}`)
+        }
       }
 
       // input IS a valid username
@@ -70,7 +84,11 @@ export default function HomePage() {
       // Route to account details page
       setLoading(false)
       const userID = await tempUserID.json()
-      router.push(`accountdetails/?steamid=${userID}`)
+      if (params.get("pibble")) {
+        router.push(`accountdetails/?steamid=${userID}&pibble=activated`)
+      } else {
+        router.push(`accountdetails/?steamid=${userID}`)
+      }
     }
   }
 
