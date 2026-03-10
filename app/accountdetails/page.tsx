@@ -55,8 +55,8 @@ export default function Homepage() {
       subtext: "",
     }, {
       games: userGameData.filter(a => a.playtime_forever === 0),
-      header: "Not Played:(",
-      description: "Games with 0 hours played",
+      header: "Not Played :(",
+      description: "Zero hours played",
       subtext: "Why haven't you played this yet? install them at least!",
     }, {
       games: userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10),
@@ -64,15 +64,15 @@ export default function Homepage() {
       description: "Less than 10 minutes of time played",
       subtext: "At least give them a chance!",
     }, {
-      games: userGameData.filter((a) => a.percent_of_achievements >= 75 && a.percent_of_achievements < 100),
+      games: userGameData.filter((a) => a.score >= 80 && a.score < 100),
       header: "Almost Complete!",
-      description: "Games with at least a 75% achievements and 80% score",
+      description: "At least a 80% score",
       subtext: "",
     }, {
       games: userGameData.filter(a => a.score == 100),
       header: "High Score!",
-      description: "Games that score at least a 100%",
-      subtext: "Level Up! (or something)",
+      description: "100% Score!",
+      subtext: "Level Up 😎",
     }, {
       games: userGameData,
       header: "All games",
@@ -98,6 +98,10 @@ export default function Homepage() {
 
   function GetRandomInt(max: number) {
     return Math.floor(Math.random() * max)
+  }
+
+  function Delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // Calculate a score of how much a user has completed their game
@@ -365,11 +369,24 @@ export default function Homepage() {
     }
   }
 
-  // place bmo back to origin
+  // Place BMO back to origin
   function ResetBMO() {
     bmoParent.current.position.x = 0
     bmoParent.current.position.y = 50
     bmoParent.current.position.z = 0
+  }
+
+  // Ask BMO for a random game
+  function GetRandomGame() {
+    setAdvice("Computing...")
+
+    setTimeout(() => {
+      setAdvice("BMO is thinking... really hard")
+      setTimeout(() => {
+        let randomGame = userGameData[GetRandomInt(userGameData.length)].name
+        setAdvice(`BMO thinks you should play ${randomGame} for at least 15 minutes!`)
+      }, 1500)
+    }, 1000)
   }
 
   // Takes in array of user games and sorts them based on categories
@@ -464,11 +481,11 @@ export default function Homepage() {
                   onClick={() => requestSort('global_median_playtime')}
                   className="cursor-pointer bg-slate-700 p-1 rounded-xl">
                   {sortConfig?.key === 'global_median_playtime' ? sortConfig?.direction === "descending" ? (
-                    <p>Global Average Playtime ▼</p>
+                    <p>Global Avg. Playtime ▼</p>
                   ) : (
-                    <p>Global Average Playtime ▲</p>
+                    <p>Global Avg. Playtime ▲</p>
                   ) : (
-                    <p>Global Average Playtime</p>
+                    <p>Global Avg. Playtime</p>
                   )}
                 </button>
 
@@ -533,34 +550,53 @@ export default function Homepage() {
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-1.5">
                     <div>
                       <b>Scoring</b>
-                      <p>+50% if you played more than the average player</p>
-                      <br />
-                      <p>+50% if you unlocked all the achievements</p>
+                      <p>Get a 100% score by playing more than an average player and getting all achievements</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Hours Played */}
                 {game.playtime_forever / 60 < 1 ? (
-                  <p>Hours Played: {game.playtime_forever} minutes</p>
+                  <div>
+                    <b>Hours Played</b>
+                    <p>{game.playtime_forever} minutes</p>
+                  </div>
                 ) : (
-                  <p>Hours Played: {Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+                  <div>
+                    <b>Hours Played</b>
+                    <p>{Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
+                  </div>
                 )}
 
                 {/* Global Median Playtime */}
                 {game.global_median_playtime != -1 ? (game.global_median_playtime / 60 < 1 ? (
-                  <p>Average Global Playtime: {game.global_median_playtime % 60} minutes </p>
+                  <div>
+                    <b>Global Avg Playtime</b>
+                    <p>{game.global_median_playtime % 60} minutes </p>
+                  </div>
                 ) : (
-                  <p>Average Global Playtime: {Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+                  <div>
+                    <b>Global Avg Playtime</b>
+                    <p>{Math.floor(game.global_median_playtime / 60)} hours and {game.global_median_playtime % 60} minutes</p>
+                  </div>
                 )) : (
-                  <p className="bg-red-500 rounded-xl p-0.5">Average Global Playtime: Unavailable</p>
+                  <div>
+                    <b>Global Avg Playtime</b>
+                    <p>Unavailable</p>
+                  </div>
                 )}
 
                 {/* Achievements */}
                 {game.total_achievements ? (
-                  <p>Achievements: {game.percent_of_achievements}%</p>
+                  <div>
+                    <b>Achievements</b>
+                    <p>{game.percent_of_achievements}% Unlocked</p>
+                  </div>
                 ) : (
-                  <p>Game has no achievements</p>
+                  <div>
+                    <b>Achievements</b>
+                    <p>Game has no achievements</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -659,7 +695,7 @@ export default function Homepage() {
               </div>
 
               {/* Account description */}
-              <div className="flex flex-col space-y-2 w-3/5">
+              <div className="flex flex-col space-y-2 w-full md:w-3/5">
                 <div className="group relative inline-block cursor-pointer w-50">
                   <p className='text-2xl'>Account Score: {accountScore}</p>
                   <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
@@ -698,7 +734,10 @@ export default function Homepage() {
                     )}
                   </div>
                   <div>{advice}</div>
-                  <div onClick={ResetBMO} className="text-sm w-fit p-1 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">Reset Position</div>
+                  <div className="flex flex-row justify-between">
+                    <button onClick={GetRandomGame} className="text-sm w-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO for a random game</button>
+                    <button onClick={ResetBMO} className="text-sm w-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Reset Position</button>
+                  </div>
                 </div>
                 <div className="w-min text-zinc-800 text-6xl relative -top-3 -mb-15 cursor-default">▼</div>
                 <Spline className="w-full flex-1" scene="https://draft.spline.design/tG6gZQCWPWFBMyyy/scene.splinecode" onLoad={LoadBMO} onSplineMouseDown={ClickBMO} />
@@ -707,7 +746,7 @@ export default function Homepage() {
           </div>
 
           <div className="flex flex-row justify-between">
-            <p className="text-2xl">Go give yo games some love</p>
+            <b>Get a 100% score by playing more than an average player and getting all achievements</b>
             <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 

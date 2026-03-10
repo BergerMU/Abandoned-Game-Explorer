@@ -97,8 +97,8 @@ export default function HomePage() {
       {/* Instructions */}
       <p className="text-5xl">Explore your steam library!</p>
       <p>How to do it in 3 easy steps!</p>
-      <p>1. Go to your steam profile and copy the URL</p>
-      <p>2. Paste your account url in the search bar</p>
+      <p>1. Go to your steam profile and copy the URL (Look in the top left corner in the steam app)</p>
+      <p>2. Paste your account url below</p>
       <p>3. Hit enter</p>
 
       {/* Search Form */}
