@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState, useRef, memo } from "react"
 import { useRouter } from "next/navigation"
 import type { Application } from '@splinetool/runtime'
 import Spline from '@splinetool/react-spline'
@@ -30,15 +30,16 @@ export default function Homepage() {
     total_achievements: number
     unlocked_achievements_count: number
   }
-  const [userGameData, setUserGameData] = useState<Game[]>([])
+
+  const [allGameData, setAllGameData] = useState<Game[]>([])
+  const recentlyPlayedGameData = allGameData.filter(game => game.played_within_two_weeks)
+  const notPlayedGameData = allGameData.filter(game => game.playtime_forever === 0)
+  const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever > 0 && game.playtime_forever < 10)
+  const almostCompleteGameData = allGameData.filter(game => game.score >= 80 && game.score < 100)
+  const highScoreGameData = allGameData.filter(game => game.score == 100)
 
   // Category Table Variables
   const [selectedCategory, setSelectedCategory] = useState(0)
-  type SortConfig<T> = {
-    key: keyof T
-    direction: 'ascending' | 'descending'
-  } | null
-
   type Category = {
     games: Game[]
     header: string
@@ -50,31 +51,31 @@ export default function Homepage() {
   const categories = [
     {
       header: "Recently Played",
-      games: userGameData.filter(x => x.played_within_two_weeks),
+      games: recentlyPlayedGameData,
       description: "Played within the last two weeks",
       subtext: "",
     }, {
-      games: userGameData.filter(a => a.playtime_forever === 0),
+      games: notPlayedGameData,
       header: "Not Played :(",
       description: "Zero hours played",
       subtext: "Why haven't you played this yet? install them at least!",
     }, {
-      games: userGameData.filter((a) => a.playtime_forever > 0 && a.playtime_forever < 10),
+      games: barelyTouchedGameData,
       header: "Barely Touched",
       description: "Less than 10 minutes of time played",
       subtext: "At least give them a chance!",
     }, {
-      games: userGameData.filter((a) => a.score >= 80 && a.score < 100),
+      games: almostCompleteGameData,
       header: "Almost Complete!",
       description: "At least a 80% score",
       subtext: "",
     }, {
-      games: userGameData.filter(a => a.score == 100),
+      games: highScoreGameData,
       header: "High Score!",
       description: "100% Score!",
       subtext: "Level Up 😎",
     }, {
-      games: userGameData,
+      games: allGameData,
       header: "All games",
       description: "",
       subtext: "",
@@ -85,23 +86,48 @@ export default function Homepage() {
   const splineScene = useRef<any>(null)
   const bmoParent = useRef<any>(null)
   const bmoFace = useRef<any>(null)
+  const canInteract = useRef(true)
   let [emotion, setEmotion] = useState("")
-  let [advice, setAdvice] = useState("...")
+  let [bmoMessage, setBmoMessage] = useState("Click me for random advice!")
+  let bmoLoadingMessage = ["loading...", "Computing the meaning of life...", "BMO is running the calculations...", "Computing...", "BMO is thinking... really hard!"]
+  let bmoFaceIDs = {
+    dead: "2ed29224-a9eb-4940-964a-2a2f9f60493e",
+    sad_1: "67e91e88-ce6c-4649-933f-946bbd98291c",
+    sad_2: "dd05b505-4d37-45e0-94a0-e5f0b7ad3b34",
+    sad_3: "394fd309-8225-42aa-889a-95247c8a27b9",
+    sad_4: "f399ad6c-a7ca-4e95-b171-d8cd33ecc0e2",
+    sad_5: "10a76597-6d84-45cb-948f-58e07e589454",
+    mild: "8ff2987c-5b27-4410-9310-ec89579befec",
+    upset_1: "86889eed-6296-442e-928e-591cbbebf297",
+    upset_2: "2b51585c-1cbe-4e0e-95a8-185bcc59a978",
+    suspicious_1: "6d078ace-c328-46a5-ba94-faf592d2e0a1",
+    suspicious_2: "a83cc717-0a00-47cc-b55c-4b92fc052dc7",
+    tired: "db908d00-5319-4628-a063-c2f927dd1a2d",
+    blush_1: "bcced30c-eeab-4aaf-866e-b83feb63ae99",
+    blush_2: "38533fbf-2fca-4b73-9548-bd9e3861648c",
+    tongue_out: "1de9ed4a-f265-46d6-b1d9-7fc4fc809568",
+    happy_1: "5db03b81-3033-44ac-8f19-afeab808a512",
+    happy_2: "896de8f9-dc00-47ba-b582-f63ccf51798a",
+    happy_3: "74eb4c67-7c5e-4dd5-aaf7-0f44b0b58f26",
+    happy_4: "e14a495d-9f06-4383-906e-241ea3e9748c",
+    happy_5: "4cf4e6ad-e7e3-4f7e-a4c2-30c3ce87d762",
+    heart_eyes: "ef65323b-fcca-4e94-93ba-dfe2b4a212ac",
+    star_eyes_1: "ec904fe9-1f25-4792-897a-720e5a216226",
+    star_eyes_2: "521893b8-3ffb-4535-92af-14cecd87e7ef",
+    dizzy: "33a101a3-bd46-4433-9e0f-546095c92062",
+    flushed: "9e1bde7a-2e3b-40bd-9cc0-0f72226fc643",
+  }
 
   // Account Variables
   const [steamid, setSteamid] = useState<string | null>(null)
   const [userSummary, setUserSummary] = useState<any>(null)
   const [accountScore, setAccountScore] = useState(0)
   const [accountCost, setAccountCost] = useState(0)
-  const [errorHeader, setErrorHeader] = useState("")
+  const [errorHeader, setErrorHeader] = useState(false)
   const [pibbleMode, setPibbleMode] = useState(false)
 
-  function GetRandomInt(max: number) {
-    return Math.floor(Math.random() * max)
-  }
-
-  function Delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  function GetRandom(items: any[]) {
+    return items[Math.floor(Math.random() * items.length)]
   }
 
   // Calculate a score of how much a user has completed their game
@@ -171,7 +197,7 @@ export default function Homepage() {
     console.log("Steam Spy Game Data: ", steamSpyData)
 
     if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
-      setErrorHeader("Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate.")
+      setErrorHeader(true)
     }
 
     // Fetch owned game covers
@@ -253,7 +279,7 @@ export default function Homepage() {
     })
 
     // Save game data
-    setUserGameData(combinedData)
+    setAllGameData(combinedData)
     console.log("Combined Game Data: ", combinedData)
 
     // Calculate account score by averaging each individual game score
@@ -287,107 +313,236 @@ export default function Homepage() {
   }
 
   // Selects appropriate face ids and emotions depending on account score
-  function GetBMOState() {
+  function GetBmoState() {
     if (accountScore == 0) {
       // Face Object IDs and Emotion Responses
       let possibleEmotions = ["Battery Low... Shutdown"]
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return "2ed29224-a9eb-4940-964a-2a2f9f60493e"
+      setEmotion(GetRandom(possibleEmotions))
+      return bmoFaceIDs.dead
 
     } else if (accountScore > 0 && accountScore < 20) {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["dd05b505-4d37-45e0-94a0-e5f0b7ad3b34", "394fd309-8225-42aa-889a-95247c8a27b9", "f399ad6c-a7ca-4e95-b171-d8cd33ecc0e2", "10a76597-6d84-45cb-948f-58e07e589454"]
+      let objectFaceIDs = [bmoFaceIDs.sad_2, bmoFaceIDs.sad_3, bmoFaceIDs.sad_4, bmoFaceIDs.sad_5]
       let possibleEmotions = ["I think I am dying. But that's okay, BMO always bounces back!", "BMO is not feeling well..."]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
 
     } else if (accountScore >= 20 && accountScore < 40) {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["8ff2987c-5b27-4410-9310-ec89579befec", "2b51585c-1cbe-4e0e-95a8-185bcc59a978", "86889eed-6296-442e-928e-591cbbebf297", "6d078ace-c328-46a5-ba94-faf592d2e0a1"]
-      let possibleEmotions = ["BMO is not talking to you right now...", "What the flip!", "This is bad biscuts", "Ice King would treat me better than this >:("]
+      let objectFaceIDs = [bmoFaceIDs.upset_1, bmoFaceIDs.upset_2, bmoFaceIDs.suspicious_1]
+      let possibleEmotions = ["I am not talking to you right now...", "What the flip!", "This is bad biscuts", "Ice King would treat me better than this >:("]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
 
     } else if (accountScore >= 40 && accountScore < 60) {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["67e91e88-ce6c-4649-933f-946bbd98291c", "db908d00-5319-4628-a063-c2f927dd1a2d"]
+      let objectFaceIDs = [bmoFaceIDs.mild, bmoFaceIDs.sad_1, bmoFaceIDs.tired]
       let possibleEmotions = ["What the Stuff!", "Oh my glob", "Adventure Time!"]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
 
     } else if (accountScore >= 60 && accountScore < 80) {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["bcced30c-eeab-4aaf-866e-b83feb63ae99", "1de9ed4a-f265-46d6-b1d9-7fc4fc809568", "5db03b81-3033-44ac-8f19-afeab808a512", "a83cc717-0a00-47cc-b55c-4b92fc052dc7"]
+      let objectFaceIDs = [bmoFaceIDs.blush_1, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_1, bmoFaceIDs.suspicious_2]
       let possibleEmotions = ["This does compute!", "This is all Bloobalooby"]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
 
     } else if (accountScore >= 80 && accountScore < 100) {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["38533fbf-2fca-4b73-9548-bd9e3861648c", "896de8f9-dc00-47ba-b582-f63ccf51798a", "e14a495d-9f06-4383-906e-241ea3e9748c", "f7987e29-296a-493f-a8f4-d341fb66db83"]
+      let objectFaceIDs = [bmoFaceIDs.blush_2, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4]
       let possibleEmotions = ["Who wants to play video games?"]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
 
     } else {
       // Face Object IDs and Emotion Responses
-      let objectFaceIDs = ["ef65323b-fcca-4e94-93ba-dfe2b4a212ac", "ec904fe9-1f25-4792-897a-720e5a216226", "521893b8-3ffb-4535-92af-14cecd87e7ef"]
-      let possibleEmotions = ["BMO is Mathematical", "Algebraic", "Check Please!"]
+      let objectFaceIDs = [bmoFaceIDs.heart_eyes, bmoFaceIDs.star_eyes_1, bmoFaceIDs.star_eyes_2]
+      let possibleEmotions = ["This is Mathematical", "Algebraic", "Check Please!"]
 
-      setEmotion(possibleEmotions[GetRandomInt(possibleEmotions.length)])
-      return objectFaceIDs[GetRandomInt(objectFaceIDs.length)]
+      setEmotion(GetRandom(possibleEmotions))
+      return GetRandom(objectFaceIDs)
     }
   }
 
-  function LoadBMO(spline: Application) {
-    // Set global spline scene, bmo object, and face object
-    splineScene.current = spline
-    bmoParent.current = spline.findObjectByName("BMO_Parent")
-    bmoFace.current = spline.findObjectById(GetBMOState())
+  // Reset current face and show new one
+  function SetBmoFace(newFace: string) {
+    if (!splineScene.current) return
 
     if (bmoFace.current) {
-      bmoFace.current.position.z += 600
+      bmoFace.current.position.z -= 600
     }
+
+    bmoFace.current = splineScene.current.findObjectById(newFace)
+
+    if (!bmoFace.current) return
+    bmoFace.current.position.z += 600
   }
 
-  function ClickBMO(e: any) {
-    if (e.target.name === "BMO_Parent") {
-      // Reset current face and pick new random face
-      bmoFace.current.position.z -= 600
-      bmoFace.current = splineScene.current.findObjectById(GetBMOState())
+  // Set global spline scene, bmo object, and face object
+  function LoadBmo(spline: Application) {
+    splineScene.current = spline
+    bmoParent.current = spline.findObjectByName("BMO_Parent")
+    SetBmoFace(GetBmoState())
+  }
 
-      if (!bmoFace.current) return
-      bmoFace.current.position.z += 600
+  // Randomly change bmo face and advice
+  function ClickBmo(e: any) {
+    if (e.target.name === "BMO_Parent" && canInteract.current) {
+      SetBmoFace(GetBmoState())
 
-      let possibleAdvice = ["Check game guides to get the most out of your games", "Try sorting your games in each category", "I'll get happier the higher your account score is!"]
-      setAdvice(possibleAdvice[GetRandomInt(possibleAdvice.length)])
+      let possibleAdvice = [
+        "Got stuck? Check out the game guides to help out!",
+        "Check out the different game categories for inspiration on what to play next!",
+        "Can't decide? Ask me for a random suggestion!",
+        "I'll get happier the higher your account score is!"
+      ]
+
+      // setBmoMessage(GetRandom(possibleAdvice))
     }
   }
 
   // Place BMO back to origin
-  function ResetBMO() {
+  function ResetBmo() {
     bmoParent.current.position.x = 0
     bmoParent.current.position.y = 50
     bmoParent.current.position.z = 0
   }
 
-  // Ask BMO for a random game
+  // Ask BMO for a random unplayed game
   function GetRandomGame() {
-    setAdvice("Computing...")
+    if (canInteract.current) {
+      canInteract.current = false
+      SetBmoFace(bmoFaceIDs.happy_3)
+      setBmoMessage(GetRandom(bmoLoadingMessage))
 
-    setTimeout(() => {
-      setAdvice("BMO is thinking... really hard")
       setTimeout(() => {
-        let randomGame = userGameData[GetRandomInt(userGameData.length)].name
-        setAdvice(`BMO thinks you should play ${randomGame} for at least 15 minutes!`)
-      }, 1500)
-    }, 1000)
+        setBmoMessage(GetRandom(bmoLoadingMessage))
+        setTimeout(() => {
+          let message = ""
+          let randomGame = GetRandom(allGameData)
+          let randomTime = GetRandom(["", "for 15 minutes", "for 30 minutes"])
+
+          message += `You should play ${randomGame.name} ${randomTime}.`
+
+          // Unplayed
+          if (randomGame.playtime_forever == 0) {
+            message += " Maybe you'll discover something new with this one!"
+          } else {
+            // Recently Played
+            if (randomGame.played_within_two_weeks) {
+              message += " Keep your playing streak alive!"
+            }
+
+            // 100% Score
+            if (randomGame.score == 100) {
+              message += " See if you can get even more value out of it"
+            }
+
+            // Game almost complete
+            else if (randomGame.score >= 80 && randomGame.score < 100) {
+              // Collected almost all achievements
+              if (randomGame.percent_of_achievements >= 80) {
+                message += " Try to get those last few achievements."
+
+                // Game playtime almost more than global average
+              } else if (randomGame.playtime_forever > (randomGame.global_median_playtime / .8) && randomGame.playtime_forever < randomGame.global_median_playtime) {
+                message += " You're close to playing more than the average player."
+              }
+            }
+          }
+
+          SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
+          setBmoMessage(message)
+          canInteract.current = true
+        }, 1500)
+      }, 1000)
+    }
   }
+
+  // Ask BMO for a random challenge
+  function GetRandomChallenge() {
+    if (canInteract.current) {
+      canInteract.current = false
+      SetBmoFace(bmoFaceIDs.happy_3)
+      setBmoMessage(GetRandom(bmoLoadingMessage))
+
+      setTimeout(() => {
+        setBmoMessage(GetRandom(bmoLoadingMessage))
+        setTimeout(() => {
+          let challenges = ["Play 3 different games today", "Unlock 1 achievement in any game",]
+
+          // challenge user to up their account score to the next multiple of 5 interval
+          if (accountScore != 100) {
+            challenges.push(`I challenge you to get your account score up to ${Math.floor(accountScore / 5) * 5 + 5}!`)
+          }
+
+          // Up a specific game score
+          if (allGameData.filter(game => game.score < 100).length > 0) {
+            let randomGame = GetRandom(allGameData.filter(game => game.score < 100))
+            challenges.push(`Try to get the score for ${randomGame.name} up to ${Math.floor(randomGame.score / 5) * 5 + 5}`)
+          }
+
+          // play a game from the not played category
+          if (notPlayedGameData.length > 0) {
+            let randomGame = GetRandom(notPlayedGameData)
+            challenges.push(`Play something new like ${randomGame.name}!`)
+          }
+
+          // play a game from the barely touched category
+          if (barelyTouchedGameData.length > 0) {
+            let randomGame = GetRandom(barelyTouchedGameData)
+            challenges.push(`Play a game from you've barely touched, maybe ${randomGame.name}!`)
+          }
+
+          // play a game that is almost complete
+          if (almostCompleteGameData.length > 0) {
+            let randomGame = GetRandom(almostCompleteGameData)
+            challenges.push(`Finish a game with at least a 80% score like ${randomGame.name}`)
+          }
+
+          SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
+          setBmoMessage(GetRandom(challenges))
+          canInteract.current = true
+        }, 1500)
+      }, 1000)
+    }
+  }
+
+  // Ask BMO for the meaning of life
+  function AskMeaningOfLife() {
+    if (canInteract) {
+      canInteract.current = false
+      SetBmoFace(bmoFaceIDs.happy_3)
+      setBmoMessage("Computing... Computing... Computing...")
+
+      setTimeout(() => {
+        SetBmoFace(bmoFaceIDs.dizzy)
+        setBmoMessage("Dividing by zero...")
+
+        setTimeout(() => {
+          SetBmoFace(bmoFaceIDs.flushed)
+          setBmoMessage("Error! Error!")
+
+          setTimeout(() => {
+            SetBmoFace(bmoFaceIDs.dead)
+            setBmoMessage("Can't compute... Power down")
+          canInteract.current = true
+          }, 2500)
+        }, 2500)
+      }, 2500)
+    }
+  }
+
+  type SortConfig<T> = {
+    key: keyof T
+    direction: 'ascending' | 'descending'
+  } | null
 
   // Takes in array of user games and sorts them based on categories
   function UseSortableData<T extends Record<string, any>>(
@@ -431,7 +586,8 @@ export default function Homepage() {
     return { items: sortedItems, requestSort, sortConfig }
   }
 
-  const CategoryTable = ({ header, subtext, description, games }: Category) => {
+  // Layout for each category
+  const CategoryTable = memo(({ header, subtext, description, games }: Category) => {
     const { items, requestSort, sortConfig } = UseSortableData(games, {
       key: "global_median_playtime",
       direction: "descending"
@@ -505,13 +661,13 @@ export default function Homepage() {
 
             <div className="flex flex-col sm:text-left md:text-right">
               <input type="text" className='w-60 p-3 h-10 outline-1 outline-black rounded-xl bg-sky-950' placeholder="Search for your games" onChange={e => setSearchGames(e.target.value)} value={searchGames} />
-              <p className='text-2xl'>{items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).length} Games</p>
+              <p className='text-2xl'>{items.filter(game => game.name.toLowerCase().includes(searchGames.toLowerCase())).length} Games</p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 h-150 overflow-y-auto gap-y-14 gap-x-5 p-3">
-          {items.length > 0 ? items.filter(g => g.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
+          {items.length > 0 ? items.filter(game => game.name.toLowerCase().includes(searchGames.toLowerCase())).map((game) => (
             <div className="flex flex-col h-full" key={game.appid}>
 
               {/* Title */}
@@ -520,8 +676,8 @@ export default function Homepage() {
               {/* Covers*/}
               {game.game_cover != "No Cover" ? (
                 <div className="flex relative aspect-2/3 md:m-4 overflow-hidden  justify-center rounded-xl hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">
-                  <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center z-10 rounded-xl" src={game.game_cover} />
-                  <img className="relative z-10 object-contain rounded-xl align-middle" src={game.game_cover} />
+                  <img className="absolute inset-0 blur-sm bg-repeat h-full bg-center rounded-xl" src={game.game_cover} />
+                  <img className="relative object-contain rounded-xl align-middle" src={game.game_cover} />
                 </div>
               ) : (
                 <div className='relative aspect-2/3 md:m-4 bg-linear-to-tl from-slate-800 to-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-105'>
@@ -606,7 +762,7 @@ export default function Homepage() {
         </div>
       </div>
     )
-  }
+  })
 
   // Run all apis for user info and game data
   const FetchAllData = async () => {
@@ -657,14 +813,15 @@ export default function Homepage() {
 
   return (
     <main className="flex flex-col p-2 md:p-8 items-center">
-      {/* Loading user account info */}
       {loadingMessage ? (
+        // Loading user account info
         <div className='flex flex-col space-y-3 items-center'>
           <p className='text-2xl'>{loadingMessage}</p>
           <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-current" />
         </div>
-        // Loading Game info
+
       ) : privacyError ? (
+        // Error getting access to user account
         <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-5 rounded-xl">
           <p className="text-2xl">Your account data was unable to be viewed</p>
           <p>From your Steam Profile click the Edit Profile link. Click the "Privacy Settings tab"</p>
@@ -675,73 +832,77 @@ export default function Homepage() {
         </div>
       ) : userSummary ? (
         <div className="space-y-3 w-full">
-          {/* Header User Section */}
           {errorHeader && (
-            <div className="bg-red-600 p-3 w-fit rounded-xl">
-              <p>{errorHeader}</p>
-            </div>
+            // Error header from Steam Spy API
+            <p className="bg-red-600 p-3 w-fit rounded-xl">"Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate."</p>
           )}
-          <div>
-            {/* User Header */}
-            <div className='flex flex-col md:flex-row gap-4 p-3 justify-between'>
-              {/* Username and profile picture */}
-              <div className="flex flex-col">
-                <p className="text-4xl mb-2">{userSummary.personaname}</p>
-                {pibbleMode ? (
-                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
-                ) : (
-                  <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
-                )}
-              </div>
 
-              {/* Account description */}
-              <div className="flex flex-col space-y-2 w-full md:w-3/5">
-                <div className="group relative inline-block cursor-pointer w-50">
-                  <p className='text-2xl'>Account Score: {accountScore}</p>
-                  <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
-                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-                    <div>
-                      <b>Account Scoring</b>
-                      <p>Your Account Score is the average score accross all of your games</p>
-                    </div>
-                  </div>
-                </div>
+          {/* User Info and BMO */}
+          <div className='flex flex-col md:flex-row gap-4 p-3 justify-between'>
+            {/* Username and profile picture */}
+            <div className="flex flex-col">
+              <p className="text-4xl mb-2">{userSummary.personaname}</p>
+              {pibbleMode ? (
+                <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
+              ) : (
+                <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
+              )}
+            </div>
 
-                {/* If user is offline, busy, away, snoozed */}
-                {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-                  <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
-                ) : (
-                  <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
-                )}
-                <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
-                <p>Total Games: {userGameData.length}</p>
-                <div>
-                  <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
-                  <p>Average Cost Per Game: ${(accountCost / userGameData.length).toFixed(2)}</p>
-                </div>
-                <p>Note: This estimate does not factor in discounts or microstransactions</p>
-              </div>
-
-              {/* BMO */}
-              <div className="rounded-xl w-full h-96 md:w-3xl md:h-96 flex flex-col items-center">
-                <div className="bg-zinc-800 rounded-xl p-2 space-y-2 w-full">
-                  <div>{emotion}</div>
+            {/* Account description */}
+            <div className="flex flex-col space-y-2 w-full md:w-3/5">
+              <div className="group relative inline-block cursor-pointer w-50">
+                <p className='text-2xl'>Account Score: {accountScore}</p>
+                <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
+                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                   <div>
-                    {accountScore != 100 ? (
-                      <p>Get your account score up to {Math.floor(accountScore / 5) * 5 + 5}!</p>
-                    ) : (
-                      <p className="text-sm">Congrats on your 100% BMO is very proud!</p>
-                    )}
-                  </div>
-                  <div>{advice}</div>
-                  <div className="flex flex-row justify-between">
-                    <button onClick={GetRandomGame} className="text-sm w-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO for a random game</button>
-                    <button onClick={ResetBMO} className="text-sm w-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Reset Position</button>
+                    <b>Account Scoring</b>
+                    <p>Your Account Score is the average score accross all of your games</p>
                   </div>
                 </div>
-                <div className="w-min text-zinc-800 text-6xl relative -top-3 -mb-15 cursor-default">▼</div>
-                <Spline className="w-full flex-1" scene="https://draft.spline.design/tG6gZQCWPWFBMyyy/scene.splinecode" onLoad={LoadBMO} onSplineMouseDown={ClickBMO} />
               </div>
+
+              {/* If user is offline, busy, away, snoozed */}
+              {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
+                <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
+              ) : (
+                <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
+              )}
+              <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
+              <p>Total Games: {allGameData.length}</p>
+              <div>
+                <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
+                <p>Average Cost Per Game: ${(accountCost / allGameData.length).toFixed(2)}</p>
+              </div>
+              <p>Note: This estimate does not factor in discounts or microstransactions</p>
+            </div>
+
+            {/* BMO */}
+            <div className="rounded-xl w-full h-96 md:w-3xl md:h-96 flex flex-col items-center">
+              <div className="bg-zinc-800 rounded-xl p-2 space-y-2 w-full z-10">
+                <div className="flex flex-row justify-between">
+                  {emotion}
+                  <button onClick={ResetBmo} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Reset Position</button>
+                </div>
+                <div>{bmoMessage}</div>
+                <div className="flex flex-row justify-between">
+
+                  {/* Interaction Buttons (displays if there is more than 1 game in library) */}
+                  {allGameData.length > 1 && (
+                    <div className="flex flex-col">
+                      <b>Ask BMO</b>
+                      <div className="flex gap-1">
+                        {/* Ask BMO for random game */}
+                        <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random game</button>
+                        <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random challenge</button>
+                        <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO the meaning of lie</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="w-min text-zinc-800 text-6xl relative -top-3 -mb-15 cursor-default pointer-none z-0">▼</div>
+              <Spline className="w-full flex-2" scene="https://draft.spline.design/sSS1g2EHLdCqONDV/scene.splinecode" onLoad={LoadBmo} onSplineMouseDown={ClickBmo} />
             </div>
           </div>
 
