@@ -63,8 +63,8 @@ export default function HomePage() {
           setSearchError("Pibble Mode Activated")
         } else {
           setSearchError("Can't find user account, make sure you copied the url directly from the steam profile page")
+          console.error("Couldn't find user account")
         }
-        console.error("Couldn't find user account")
         setLoading(false)
 
         // input IS a valid steamid

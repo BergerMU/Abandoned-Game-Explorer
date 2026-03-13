@@ -10,7 +10,7 @@ const font = Funnel_Sans({
 
 export const metadata: Metadata = {
   title: "Abandoned Game Explorer",
-  description: "You got games on your phone?",
+  description: "You got games on yo phone?",
 }
 
 export default function RootLayout({
