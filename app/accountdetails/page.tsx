@@ -34,7 +34,7 @@ export default function Homepage() {
   const [allGameData, setAllGameData] = useState<Game[]>([])
   const recentlyPlayedGameData = allGameData.filter(game => game.played_within_two_weeks)
   const notPlayedGameData = allGameData.filter(game => game.playtime_forever === 0)
-  const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever > 0 && game.playtime_forever < 10)
+  const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever < (game.global_median_playtime * .15) && game.playtime_forever > 0)
   const almostCompleteGameData = allGameData.filter(game => game.score >= 80 && game.score < 100)
   const highScoreGameData = allGameData.filter(game => game.score == 100)
 
@@ -62,7 +62,7 @@ export default function Homepage() {
     }, {
       games: barelyTouchedGameData,
       header: "Barely Touched",
-      description: "Less than 10 minutes of time played",
+      description: "Hours played is less than 15% of the global average",
       subtext: "At least give them a chance!",
     }, {
       games: almostCompleteGameData,
