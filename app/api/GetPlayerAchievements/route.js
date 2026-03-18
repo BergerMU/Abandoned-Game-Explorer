@@ -4,10 +4,11 @@ import { NextResponse } from "next/server"
 export async function POST(request) {
   const { id: steamUserID, gameData: games } = await request.json()
   const results = []
+  const batchSize = 150
 
   // Go through batches of games
-  for (let i = 0; i < games.games.length; i += 500) {
-    const batch = games.games.slice(i, i+500)
+  for (let i = 0; i < games.games.length; i += batchSize) {
+    const batch = games.games.slice(i, i + batchSize)
 
     // Format appids in a string to use in api
     let formattedGames = ""

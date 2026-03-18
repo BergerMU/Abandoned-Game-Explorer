@@ -34,7 +34,7 @@ export default function Homepage() {
   const [allGameData, setAllGameData] = useState<Game[]>([])
   const recentlyPlayedGameData = allGameData.filter(game => game.played_within_two_weeks)
   const notPlayedGameData = allGameData.filter(game => game.playtime_forever === 0)
-  const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever < (game.global_median_playtime * .15) && game.playtime_forever > 0)
+  const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever > 0 && game.playtime_forever <= 30)
   const almostCompleteGameData = allGameData.filter(game => game.score >= 80 && game.score < 100)
   const highScoreGameData = allGameData.filter(game => game.score == 100)
 
@@ -57,13 +57,13 @@ export default function Homepage() {
     }, {
       games: notPlayedGameData,
       header: "Not Played :(",
-      description: "Zero hours played",
+      description: "Zero time played",
       subtext: "Why haven't you played this yet? install them at least!",
     }, {
       games: barelyTouchedGameData,
       header: "Barely Touched",
-      description: "Hours played is less than 15% of the global average",
-      subtext: "At least give them a chance!",
+      description: "Time played is less than 30 minutes",
+      subtext: "Pick them up again!",
     }, {
       games: almostCompleteGameData,
       header: "Almost Complete!",
@@ -88,8 +88,8 @@ export default function Homepage() {
   const bmoFace = useRef<any>(null)
   const canInteract = useRef(true)
   let [emotion, setEmotion] = useState("")
-  let [bmoMessage, setBmoMessage] = useState("Click me for random advice!")
-  let bmoLoadingMessage = ["loading...", "Computing the meaning of life...", "BMO is running the calculations...", "Computing...", "BMO is thinking... really hard!"]
+  let [bmoMessage, setBmoMessage] = useState("Ask me a question")
+  let bmoLoadingMessage = ["loading...", "BMO is running the calculations...", "Computing...", "BMO is thinking... really hard!"]
   let bmoFaceIDs = {
     dead: "2ed29224-a9eb-4940-964a-2a2f9f60493e",
     sad_1: "67e91e88-ce6c-4649-933f-946bbd98291c",
@@ -395,15 +395,6 @@ export default function Homepage() {
   function ClickBmo(e: any) {
     if (e.target.name === "BMO_Parent" && canInteract.current) {
       SetBmoFace(GetBmoState())
-
-      let possibleAdvice = [
-        "Got stuck? Check out the game guides to help out!",
-        "Check out the different game categories for inspiration on what to play next!",
-        "Can't decide? Ask me for a random suggestion!",
-        "I'll get happier the higher your account score is!"
-      ]
-
-      // setBmoMessage(GetRandom(possibleAdvice))
     }
   }
 
@@ -426,9 +417,9 @@ export default function Homepage() {
         setTimeout(() => {
           let message = ""
           let randomGame = GetRandom(allGameData)
-          let randomTime = GetRandom(["", "for 15 minutes", "for 30 minutes"])
+          let randomTime = GetRandom(["", " for 15 minutes", " for 30 minutes"])
 
-          message += `You should play ${randomGame.name} ${randomTime}.`
+          message += `You should play ${randomGame.name}${randomTime}.`
 
           // Unplayed
           if (randomGame.playtime_forever == 0) {
@@ -445,9 +436,9 @@ export default function Homepage() {
             }
 
             // Game almost complete
-            else if (randomGame.score >= 80 && randomGame.score < 100) {
+            else if (randomGame.score >= 80) {
               // Collected almost all achievements
-              if (randomGame.percent_of_achievements >= 80) {
+              if (randomGame.percent_of_achievements >= 80 && randomGame.percent_of_achievements < 100) {
                 message += " Try to get those last few achievements."
 
                 // Game playtime almost more than global average
@@ -457,6 +448,7 @@ export default function Homepage() {
             }
           }
 
+          // Change BMO's face and message
           SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
           setBmoMessage(message)
           canInteract.current = true
@@ -506,6 +498,7 @@ export default function Homepage() {
             challenges.push(`Finish a game with at least a 80% score like ${randomGame.name}`)
           }
 
+          // Change BMO's face and message
           SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
           setBmoMessage(GetRandom(challenges))
           canInteract.current = true
@@ -518,21 +511,26 @@ export default function Homepage() {
   function AskMeaningOfLife() {
     if (canInteract) {
       canInteract.current = false
+
+      // Change BMO's face and message
       SetBmoFace(bmoFaceIDs.happy_3)
       setBmoMessage("Computing... Computing... Computing...")
 
       setTimeout(() => {
+        // Change BMO's face and message
         SetBmoFace(bmoFaceIDs.dizzy)
         setBmoMessage("Dividing by zero...")
 
         setTimeout(() => {
+          // Change BMO's face and message
           SetBmoFace(bmoFaceIDs.flushed)
           setBmoMessage("Error! Error!")
 
           setTimeout(() => {
+            // Change BMO's face and message
             SetBmoFace(bmoFaceIDs.dead)
             setBmoMessage("Can't compute... Power down")
-          canInteract.current = true
+            canInteract.current = true
           }, 2500)
         }, 2500)
       }, 2500)
@@ -625,11 +623,11 @@ export default function Homepage() {
                   onClick={() => requestSort('playtime_forever')}
                   className="cursor-pointer bg-slate-700 p-1 rounded-xl">
                   {sortConfig?.key === 'playtime_forever' ? sortConfig?.direction === "descending" ? (
-                    <p>Hours Played ▼</p>
+                    <p>Time Played ▼</p>
                   ) : (
-                    <p>Hours Played ▲</p>
+                    <p>Time Played ▲</p>
                   ) : (
-                    <p>Hours Played</p>
+                    <p>Time Played</p>
                   )}
                 </button>
 
@@ -711,15 +709,15 @@ export default function Homepage() {
                   </div>
                 </div>
 
-                {/* Hours Played */}
+                {/* Time Played */}
                 {game.playtime_forever / 60 < 1 ? (
                   <div>
-                    <b>Hours Played</b>
+                    <b>Time Played</b>
                     <p>{game.playtime_forever} minutes</p>
                   </div>
                 ) : (
                   <div>
-                    <b>Hours Played</b>
+                    <b>Time Played</b>
                     <p>{Math.floor(game.playtime_forever / 60)} hours and {game.playtime_forever % 60} minutes</p>
                   </div>
                 )}
@@ -812,7 +810,7 @@ export default function Homepage() {
   }, [steamid])
 
   return (
-    <main className="flex flex-col p-2 md:p-8 items-center">
+    <main className="flex flex-col p-2 md:p-8">
       {loadingMessage ? (
         // Loading user account info
         <div className='flex flex-col space-y-3 items-center'>
@@ -824,57 +822,60 @@ export default function Homepage() {
         // Error getting access to user account
         <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-5 rounded-xl">
           <p className="text-2xl">Your account data was unable to be viewed</p>
-          <p>From your Steam Profile click the Edit Profile link. Click the "Privacy Settings tab"</p>
+          <p>View your Steam profile and click the "Edit Profile" button. Click the "Privacy Settings tab"</p>
           <p>• Make sure "My basic details" is "Public"</p>
           <p>• Make sure "My profile" is "Public"</p>
           <p>• Make sure "Game details" is "Public"</p>
           <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
         </div>
       ) : userSummary ? (
-        <div className="space-y-3 w-full">
+        <div className="space-y-3 w-full flex flex-col justify-center items-center">
           {errorHeader && (
             // Error header from Steam Spy API
-            <p className="bg-red-600 p-3 w-fit rounded-xl">"Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate."</p>
+            <p className="bg-red-600 p-3 w-fit rounded-xl">Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate.</p>
           )}
 
           {/* User Info and BMO */}
-          <div className='flex flex-col md:flex-row gap-4 p-3 justify-between'>
-            {/* Username and profile picture */}
-            <div className="flex flex-col">
-              <p className="text-4xl mb-2">{userSummary.personaname}</p>
-              {pibbleMode ? (
-                <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
-              ) : (
-                <img className="rounded-xl m-2 w-44 h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
-              )}
-            </div>
-
+          <div className='flex flex-col w-full md:flex-row gap-4 p-3 justify-between'>
             {/* Account description */}
-            <div className="flex flex-col space-y-2 w-full md:w-3/5">
-              <div className="group relative inline-block cursor-pointer w-50">
-                <p className='text-2xl'>Account Score: {accountScore}</p>
-                <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
-                <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
-                  <div>
-                    <b>Account Scoring</b>
-                    <p>Your Account Score is the average score accross all of your games</p>
+            <div className="flex flex-row w-full gap-5">
+              {/* Username and profile picture */}
+              <div className="flex flex-col w-full md:w-min">
+                <p className="text-2xl md:text-4xl mb-2">{userSummary.personaname}</p>
+                {pibbleMode ? (
+                  <img className="rounded-xl w-full h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
+                ) : (
+                  <img className="rounded-xl w-full h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={userSummary.avatarfull} />
+                )}
+              </div>
+
+              {/* Account score, User online, creation date, total games, average cost */}
+              <div className="flex flex-col space-y-2 w-full md:w-3/5">
+                <div className="group relative inline-block cursor-pointer w-full md:w-50">
+                  <p className='text-2xl'>Account Score: {accountScore}</p>
+                  <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
+                  <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
+                    <div>
+                      <b>Account Scoring</b>
+                      <p>Your Account Score is the average score accross all of your games</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* If user is offline, busy, away, snoozed */}
-              {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
-                <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
-              ) : (
-                <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
-              )}
-              <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
-              <p>Total Games: {allGameData.length}</p>
-              <div>
-                <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
-                <p>Average Cost Per Game: ${(accountCost / allGameData.length).toFixed(2)}</p>
+
+                {userSummary.personastate == 0 || userSummary.personastate == 2 || userSummary.personastate == 3 || userSummary.personastate == 4 ? (
+                  <p className="bg-red-500 w-min p-1 rounded-xl">Offline</p>
+                ) : (
+                  <p className="bg-green-700 w-min p-1 rounded-xl">Online</p>
+                )}
+                <p>Account Created On: {new Date(userSummary.timecreated * 1000).toLocaleDateString("en-US")}</p>
+                <p>Total Games: {allGameData.length}</p>
+                <div>
+                  <p>Estimated Account Cost: ${accountCost.toLocaleString("en-US")}</p>
+                  <p>Average Cost Per Game: ${(accountCost / allGameData.length).toFixed(2)}</p>
+                </div>
+                <p>Note: This estimate does not factor in discounts or microstransactions</p>
               </div>
-              <p>Note: This estimate does not factor in discounts or microstransactions</p>
             </div>
 
             {/* BMO */}
@@ -885,18 +886,16 @@ export default function Homepage() {
                   <button onClick={ResetBmo} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Reset Position</button>
                 </div>
                 <div>{bmoMessage}</div>
-                <div className="flex flex-row justify-between">
 
-                  {/* Interaction Buttons (displays if there is more than 1 game in library) */}
+                {/* Interaction Buttons (displays if there is more than 1 game in library) */}
+                <div className="flex flex-col w-full">
+                  <b>Ask BMO</b>
                   {allGameData.length > 1 && (
-                    <div className="flex flex-col">
-                      <b>Ask BMO</b>
-                      <div className="flex gap-1">
-                        {/* Ask BMO for random game */}
-                        <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random game</button>
-                        <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random challenge</button>
-                        <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO the meaning of lie</button>
-                      </div>
+                    <div className="flex w-full justify-between gap-1">
+                      {/* Ask BMO for random game */}
+                      <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random game</button>
+                      <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random challenge</button>
+                      <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO the meaning of life</button>
                     </div>
                   )}
                 </div>
@@ -906,13 +905,13 @@ export default function Homepage() {
             </div>
           </div>
 
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row w-full justify-between">
             <b>Get a 100% score by playing more than an average player and getting all achievements</b>
             <button className='p-2 rounded-xl bg-sky-950 text-gray-200 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110' onClick={FetchAllData}>Refresh Account Data</button>
           </div>
 
           {/* Category Headers */}
-          <div className="grid grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
+          <div className="grid w-full grid-cols-2 md:grid-cols-6 justify-items-center gap-y-2">
             {categories.map((category, index) => (
               <button key={category.header} onClick={() => setSelectedCategory(index)} className="bg-sky-950 p-2 rounded-xl w-28 cursor-pointer hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110">{category.header}</button>
             ))}
