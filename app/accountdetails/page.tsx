@@ -893,9 +893,9 @@ export default function Homepage() {
                   {allGameData.length > 1 && (
                     <div className="flex w-full justify-between gap-1">
                       {/* Ask BMO for random game */}
-                      <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random game</button>
-                      <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a random challenge</button>
-                      <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask BMO the meaning of life</button>
+                      <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Get a random game</button>
+                      <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a challenge</button>
+                      <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for the meaning of life</button>
                     </div>
                   )}
                 </div>
