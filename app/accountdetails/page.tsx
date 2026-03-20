@@ -838,10 +838,10 @@ export default function Homepage() {
           {/* User Info and BMO */}
           <div className='flex flex-col w-full md:flex-row gap-4 p-3 justify-between'>
             {/* Account description */}
-            <div className="flex flex-row w-full gap-5">
+            <div className="flex flex-col md:flex-row w-full gap-5">
               {/* Username and profile picture */}
-              <div className="flex flex-col w-full md:w-min">
-                <p className="text-2xl md:text-4xl mb-2">{userSummary.personaname}</p>
+              <div className="flex flex-col w-64">
+                <p className="text-2xl md:text-4xl mb-2 wrap-anywhere">{userSummary.personaname}</p>
                 {pibbleMode ? (
                   <img className="rounded-xl w-full h-auto hover:shadow-[0_0_20px_rgba(114,193,255,0.7)] transition duration-200 hover:scale-110" src={"/assets/pibble.png"} />
                 ) : (
@@ -853,7 +853,7 @@ export default function Homepage() {
               <div className="flex flex-col space-y-2 w-full md:w-3/5">
                 <div className="group relative inline-block cursor-pointer w-full md:w-50">
                   <p className='text-2xl'>Account Score: {accountScore}</p>
-                  <progress max="100" value={accountScore} className='flex w-full rounded-full'>{accountScore}</progress>
+                  <progress max="100" value={accountScore} className='flex w-60 rounded-full'>{accountScore}</progress>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                     <div>
                       <b>Account Scoring</b>
