@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, useRef, memo } from "react"
 import { useRouter } from "next/navigation"
 import type { Application } from '@splinetool/runtime'
 import Spline from '@splinetool/react-spline'
+import Video from 'next-video'
+import video_walkthrough from "../../videos/abandoned_games_walkthrough.mp4"
 
 export default function Homepage() {
   // Page Variables
@@ -785,8 +787,8 @@ export default function Homepage() {
     let tempGameSum = 0
 
     for (const obj of Object.values(steamSpyData)) {
-      if (obj.price != null) {
-        tempGameSum += Number(obj.price)
+      if (obj.initialprice != null) {
+        tempGameSum += Number(obj.initialprice)
       }
     }
     setAccountCost(tempGameSum / 100)
@@ -820,13 +822,20 @@ export default function Homepage() {
 
       ) : privacyError ? (
         // Error getting access to user account
-        <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-5 rounded-xl">
-          <p className="text-2xl">Your account data was unable to be viewed</p>
-          <p>View your Steam profile and click the "Edit Profile" button. Click the "Privacy Settings tab"</p>
-          <p>• Make sure "My basic details" is "Public"</p>
-          <p>• Make sure "My profile" is "Public"</p>
-          <p>• Make sure "Game details" is "Public"</p>
-          <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
+        <div className="flex flex-col w-full items-center">
+          <div className="bg-radial-[at_50%_50%] from-gray-800 to-gray-900 p-3 w-full space-y-3 rounded-xl">
+            {/* Error Instructions */}
+            <p className="text-2xl">Your account data was unable to be viewed</p>
+            <p>View your Steam profile and click the "Edit Profile" button. Click the "Privacy Settings tab"</p>
+            <p>• Make sure "My basic details" is "Public"</p>
+            <p>• Make sure "My profile" is "Public"</p>
+            <p>• Make sure "Game details" is "Public"</p>
+            <p>• Make sure "Always keep my total playtime private even if users can see my game details" is unchecked</p>
+          </div>
+
+          {/* Walkthrough Video */}
+          <p className='text-2xl'>Watch a Walkthrough</p>
+          <Video src={video_walkthrough} style={{ maxWidth: "38rem" }} minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png" />
         </div>
       ) : userSummary ? (
         <div className="space-y-3 w-full flex flex-col justify-center items-center">

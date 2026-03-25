@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Video from 'next-video'
+import video_walkthrough from "../videos/abandoned_games_walkthrough.mp4"
 
 export default function HomePage() {
   const router = useRouter()
@@ -93,7 +95,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col px-8 items-center space-y-5 justify-center">
+    <div className="flex flex-col px-8 items-center space-y-3 justify-center">
       {/* Instructions */}
       <p className="text-5xl">Explore your steam library!</p>
       <p>How to do it in 3 easy steps!</p>
@@ -124,6 +126,8 @@ export default function HomePage() {
           {searchError}
         </div>
       )}
+      <p className='text-2xl'>Watch a Walkthrough</p>
+      <Video src={video_walkthrough} style={{ maxWidth: "38rem"}}  minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png"/>
     </div>
   )
 }

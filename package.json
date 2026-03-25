@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev & npx next-video sync -w",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,6 +13,7 @@
     "@splinetool/runtime": "^1.12.67",
     "@vercel/analytics": "^1.6.1",
     "next": "^16.1.6",
+    "next-video": "^2.7.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-router-dom": "^7.13.0"
