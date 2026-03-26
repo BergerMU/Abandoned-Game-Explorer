@@ -127,7 +127,7 @@ export default function HomePage() {
         </div>
       )}
       <p className='text-2xl'>Watch a Walkthrough</p>
-      <Video src={video_walkthrough} style={{ maxWidth: "38rem"}}  minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png"/>
+      <Video src={video_walkthrough} style={{ maxWidth: "38rem"}} minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png"/>
     </div>
   )
 }
