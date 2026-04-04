@@ -127,13 +127,15 @@ export default function Homepage() {
   const [accountCost, setAccountCost] = useState(0)
   const [errorHeader, setErrorHeader] = useState(false)
   const [pibbleMode, setPibbleMode] = useState(false)
+  const [totalErroredGames, setTotalErroredGames] = useState(0)
+  
 
   function GetRandom(items: any[]) {
     return items[Math.floor(Math.random() * items.length)]
   }
 
   // Calculate a score of how much a user has completed their game
-  function CalculateScore(userPlaytime: number, globalPlaytime: number, totalAchievements: number, unlockedAchievements: number) {
+  function CalculateGameScore(userPlaytime: number, globalPlaytime: number, totalAchievements: number, unlockedAchievements: number) {
     let totalScore = 0
 
     // Global playtime is unavailable
@@ -168,7 +170,7 @@ export default function Homepage() {
   async function FetchSteamGames(steamid: string) {
     setPrivacyError(false)
     // Fetch owned games from steamid
-    setLoadingMessage("Getting User Games API")
+    setLoadingMessage("Getting Games")
     const tempOwnedGames = await fetch('/api/GetOwnedGames', {
       method: "POST",
       body: JSON.stringify({ id: steamid })
@@ -189,7 +191,7 @@ export default function Homepage() {
     }
 
     // Fetch in depth data from steam spy
-    setLoadingMessage("Getting Game Specific Details API (genres, price, global average playtime, etc)")
+    setLoadingMessage("Getting Game Specific Details (genres, price, global average playtime, etc)")
     const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
@@ -203,7 +205,7 @@ export default function Homepage() {
     }
 
     // Fetch owned game covers
-    setLoadingMessage("Getting Game Covers API")
+    setLoadingMessage("Getting Game Covers")
     const tempGameCovers = await fetch('/api/GetSteamCovers', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
@@ -212,7 +214,7 @@ export default function Homepage() {
     console.log("Game Covers: ", gameCovers)
 
     // Fetch owned games from userID
-    setLoadingMessage("Getting User Achievements API")
+    setLoadingMessage("Getting User Achievements")
     const tempUserAchievements = await fetch('/api/GetPlayerAchievements', {
       method: "POST",
       body: JSON.stringify({ id: steamid, gameData: ownedGames })
@@ -222,7 +224,7 @@ export default function Homepage() {
     console.log("User Achievements: ", userAchievements)
 
     // Fetch recently played
-    setLoadingMessage("Getting Recently Played API")
+    setLoadingMessage("Getting Recently Played Games")
     const tempRecentlyPlayed = await fetch('/api/GetRecentlyPlayed', {
       method: "POST",
       body: JSON.stringify({ id: steamid })
@@ -260,7 +262,7 @@ export default function Homepage() {
       }
 
       // Calculate Game Score
-      const score = CalculateScore(
+      const score = CalculateGameScore(
         currentGame.playtime_forever ?? -1,
         matchDetailedGameData?.median_forever ?? -1,
         totalAchievements ?? 0,
@@ -284,20 +286,28 @@ export default function Homepage() {
     setAllGameData(combinedData)
     console.log("Combined Game Data: ", combinedData)
 
-    // Calculate account score by averaging each individual game score
     let tempAccountScore = 0
     let totalValidGames = 0
+    let erroredGames = 0
+
     for (const obj of combinedData) {
+      // Account Score = Average Game Score
       if (obj.global_median_playtime != -1) {
         tempAccountScore += obj.score
         totalValidGames += 1
       }
+
+      // Count errored games
+      if (obj.score == -1) {
+        erroredGames += 1
+      }
     }
+
+    setTotalErroredGames(erroredGames)
 
     // Accounts for division by zero errors
     if (combinedData.length > 0) {
       setAccountScore(Math.round(tempAccountScore / totalValidGames))
-      // setAccountScore(0)
     } else {
       setAccountScore(0)
     }
@@ -671,7 +681,11 @@ export default function Homepage() {
             <div className="flex flex-col h-full" key={game.appid}>
 
               {/* Title */}
-              <b className="min-h-13 line-clamp-2">{game.name}</b>
+              {game.score != -1 ? (
+                <b className="min-h-13 line-clamp-2">{game.name}</b>
+              ) : (
+                <b className="bg-red-500 rounded-xl p-0.5 min-h-13 line-clamp-2">{game.name}</b>
+              )}
 
               {/* Covers*/}
               {game.game_cover != "No Cover" ? (
@@ -770,7 +784,7 @@ export default function Homepage() {
       return
     }
 
-    setLoadingMessage("Getting User Data")
+    setLoadingMessage("Getting User Details")
     await GetUserDetails(steamid)
 
     // Get steam games and check if null
@@ -841,7 +855,8 @@ export default function Homepage() {
         <div className="space-y-3 w-full flex flex-col justify-center items-center">
           {errorHeader && (
             // Error header from Steam Spy API
-            <p className="bg-red-600 p-3 w-fit rounded-xl">Some game details were unable to be fetched. Game details, account score, and estimated account cost may be missing/inaccurate.</p>
+            <p className="bg-red-600 p-3 w-fit rounded-xl">
+              {totalErroredGames} game's specific details couldn't be gotten. Game details, account score, and estimated account cost may be missing/inaccurate.</p>
           )}
 
           {/* User Info and BMO */}
