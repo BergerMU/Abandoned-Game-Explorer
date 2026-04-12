@@ -616,7 +616,7 @@ export default function Homepage() {
     const [searchGames, setSearchGames] = useState('')
 
     return (
-      <div className='flex flex-col p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
+      <div className='flex flex-col w-full p-3 bg-radial-[at_50%_50%] from-gray-800 to-gray-900 rounded-xl'>
         <div className="flex flex-col md:flex-row justify-between items-start gap-3">
           <div className='flex flex-col gap-2 max-w-120 min-w-min'>
             <b className='text-3xl'>{header}</b>
@@ -955,9 +955,7 @@ export default function Homepage() {
           </div>
 
           {/* Category data */}
-          <div>
-            <CategoryTable {...categories[selectedCategory]} />
-          </div>
+          <CategoryTable {...categories[selectedCategory]} />
         </div>
       ) : null}
     </main>
