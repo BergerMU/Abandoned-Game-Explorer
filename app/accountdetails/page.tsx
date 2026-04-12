@@ -128,10 +128,25 @@ export default function Homepage() {
   const [errorHeader, setErrorHeader] = useState(false)
   const [pibbleMode, setPibbleMode] = useState(false)
   const [totalErroredGames, setTotalErroredGames] = useState(0)
-  
 
+  // Returns random object in array
   function GetRandom(items: any[]) {
     return items[Math.floor(Math.random() * items.length)]
+  }
+
+  // Returns appropriate color for progress bars
+  function GetProgressColor(score: number) {
+    if (score < 10) return "#FF0000FF"
+    if (score < 20) return "#F03C03FF"
+    if (score < 30) return "#E94A04FF"
+    if (score < 40) return "#E15505FF"
+    if (score < 50) return "#CF6708FF"
+    if (score < 60) return "#BC760BFF"
+    if (score < 70) return "#A5830DFF"
+    if (score < 80) return "#98890EFF"
+    if (score < 90) return "#898E0FFF"
+    if (score < 100) return "#639911FF"
+    else return "#00C217FF"
   }
 
   // Calculate a score of how much a user has completed their game
@@ -423,48 +438,44 @@ export default function Homepage() {
       canInteract.current = false
       SetBmoFace(bmoFaceIDs.happy_3)
       setBmoMessage(GetRandom(bmoLoadingMessage))
-
       setTimeout(() => {
-        setBmoMessage(GetRandom(bmoLoadingMessage))
-        setTimeout(() => {
-          let message = ""
-          let randomGame = GetRandom(allGameData)
-          let randomTime = GetRandom(["", " for 15 minutes", " for 30 minutes"])
+        let message = ""
+        let randomGame = GetRandom(allGameData)
+        let randomTime = GetRandom(["", " for 15 minutes", " for 30 minutes"])
 
-          message += `You should play ${randomGame.name}${randomTime}.`
+        message += `You should play ${randomGame.name}${randomTime}.`
 
-          // Unplayed
-          if (randomGame.playtime_forever == 0) {
-            message += " Maybe you'll discover something new with this one!"
-          } else {
-            // Recently Played
-            if (randomGame.played_within_two_weeks) {
-              message += " Keep your playing streak alive!"
-            }
-
-            // 100% Score
-            if (randomGame.score == 100) {
-              message += " See if you can get even more value out of it"
-            }
-
-            // Game almost complete
-            else if (randomGame.score >= 80) {
-              // Collected almost all achievements
-              if (randomGame.percent_of_achievements >= 80 && randomGame.percent_of_achievements < 100) {
-                message += " Try to get those last few achievements."
-
-                // Game playtime almost more than global average
-              } else if (randomGame.playtime_forever > (randomGame.global_median_playtime / .8) && randomGame.playtime_forever < randomGame.global_median_playtime) {
-                message += " You're close to playing more than the average player."
-              }
-            }
+        // Unplayed
+        if (randomGame.playtime_forever == 0) {
+          message += " Maybe you'll discover something new with this one!"
+        } else {
+          // Recently Played
+          if (randomGame.played_within_two_weeks) {
+            message += " Keep your playing streak alive!"
           }
 
-          // Change BMO's face and message
-          SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
-          setBmoMessage(message)
-          canInteract.current = true
-        }, 1500)
+          // 100% Score
+          if (randomGame.score == 100) {
+            message += " See if you can get even more value out of it"
+          }
+
+          // Game almost complete
+          else if (randomGame.score >= 80) {
+            // Collected almost all achievements
+            if (randomGame.percent_of_achievements >= 80 && randomGame.percent_of_achievements < 100) {
+              message += " Try to get those last few achievements."
+
+              // Game playtime almost more than global average
+            } else if (randomGame.playtime_forever > (randomGame.global_median_playtime / .8) && randomGame.playtime_forever < randomGame.global_median_playtime) {
+              message += " You're close to playing more than the average player."
+            }
+          }
+        }
+
+        // Change BMO's face and message
+        SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
+        setBmoMessage(message)
+        canInteract.current = true
       }, 1000)
     }
   }
@@ -479,7 +490,7 @@ export default function Homepage() {
       setTimeout(() => {
         setBmoMessage(GetRandom(bmoLoadingMessage))
         setTimeout(() => {
-          let challenges = ["Play 3 different games today", "Unlock 1 achievement in any game",]
+          let challenges = ["Play 3 different games today", "Unlock 1 achievement in any game", "Play a game outside of your usual genre", "Play a challenging game", "Play a game a friend (or someone online) has recomended", "Get a game from your wishlist", "Play a game from the Free To Play category on Steam", "Play an old favorite"]
 
           // challenge user to up their account score to the next multiple of 5 interval
           if (accountScore != 100) {
@@ -494,28 +505,26 @@ export default function Homepage() {
 
           // play a game from the not played category
           if (notPlayedGameData.length > 0) {
-            let randomGame = GetRandom(notPlayedGameData)
-            challenges.push(`Play something new like ${randomGame.name}!`)
+            challenges.push(`Play something you've never played beore`)
           }
 
           // play a game from the barely touched category
           if (barelyTouchedGameData.length > 0) {
-            let randomGame = GetRandom(barelyTouchedGameData)
-            challenges.push(`Play a game from you've barely touched, maybe ${randomGame.name}!`)
+            challenges.push(`Play a game from you've barely touched`)
           }
 
           // play a game that is almost complete
           if (almostCompleteGameData.length > 0) {
-            let randomGame = GetRandom(almostCompleteGameData)
-            challenges.push(`Finish a game with at least a 80% score like ${randomGame.name}`)
+            // let randomGame = GetRandom(almostCompleteGameData)
+            challenges.push(`Finish a game from the Almost Complete category`)
           }
 
           // Change BMO's face and message
           SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
           setBmoMessage(GetRandom(challenges))
           canInteract.current = true
-        }, 1500)
-      }, 1000)
+        }, 1000)
+      }, 800)
     }
   }
 
@@ -716,7 +725,9 @@ export default function Homepage() {
                   ) : (
                     <p className="bg-red-500 rounded-xl p-0.5">Total Score: Unavailable</p>
                   )}
-                  <progress max="100" value={game.score} className='flex w-full'>{game.score}</progress>
+                  <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-300" style={{width: `${game.score}%`, backgroundColor: GetProgressColor(game.score)}}/>
+                  </div>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-1.5">
                     <div>
                       <b>Scoring</b>
@@ -877,7 +888,9 @@ export default function Homepage() {
               <div className="flex flex-col space-y-2 w-full md:w-3/5">
                 <div className="group relative inline-block cursor-pointer w-full md:w-50">
                   <p className='text-2xl'>Account Score: {accountScore}</p>
-                  <progress max="100" value={accountScore} className='flex w-60 rounded-full'>{accountScore}</progress>
+                  <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-300" style={{width: `${accountScore}%`, backgroundColor: GetProgressColor(accountScore)}}/>
+                  </div>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                     <div>
                       <b>Account Scoring</b>
