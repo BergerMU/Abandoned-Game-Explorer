@@ -726,7 +726,7 @@ export default function Homepage() {
                     <p className="bg-red-500 rounded-xl p-0.5">Total Score: Unavailable</p>
                   )}
                   <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-300" style={{width: `${game.score}%`, backgroundColor: GetProgressColor(game.score)}}/>
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${game.score}%`, backgroundColor: GetProgressColor(game.score) }} />
                   </div>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-1.5">
                     <div>
@@ -889,7 +889,7 @@ export default function Homepage() {
                 <div className="group relative inline-block cursor-pointer w-full md:w-50">
                   <p className='text-2xl'>Account Score: {accountScore}</p>
                   <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-300" style={{width: `${accountScore}%`, backgroundColor: GetProgressColor(accountScore)}}/>
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${accountScore}%`, backgroundColor: GetProgressColor(accountScore) }} />
                   </div>
                   <div className="invisible absolute shadow-xs bg-slate-700 rounded-xl group-hover:visible group-hover:delay-500 p-3">
                     <div>
@@ -927,14 +927,14 @@ export default function Homepage() {
                 {/* Interaction Buttons (displays if there is more than 1 game in library) */}
                 <div className="flex flex-col w-full">
                   <b>Ask BMO</b>
-                  {allGameData.length > 1 && (
-                    <div className="flex w-full justify-between gap-1">
-                      {/* Ask BMO for random game */}
+                  <div className="flex w-full justify-between gap-1">
+                    {/* Ask BMO for random game */}
+                    {allGameData.length > 0 && (
                       <button onClick={GetRandomGame} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Get a random game</button>
-                      <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a challenge</button>
-                      <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for the meaning of life</button>
-                    </div>
-                  )}
+                    )}
+                    <button onClick={GetRandomChallenge} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for a challenge</button>
+                    <button onClick={AskMeaningOfLife} className="text-sm w-fit h-fit p-1 rounded-xl bg-sky-950 cursor-pointer">Ask for the meaning of life</button>
+                  </div>
                 </div>
               </div>
               <div className="w-min text-zinc-800 text-6xl relative -top-3 -mb-15 cursor-default pointer-none z-0">▼</div>
