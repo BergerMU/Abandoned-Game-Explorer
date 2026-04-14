@@ -34,6 +34,7 @@ export default function Homepage() {
   }
 
   const [allGameData, setAllGameData] = useState<Game[]>([])
+  // Game categories
   const recentlyPlayedGameData = allGameData.filter(game => game.played_within_two_weeks)
   const notPlayedGameData = allGameData.filter(game => game.playtime_forever === 0)
   const barelyTouchedGameData = allGameData.filter(game => game.playtime_forever > 0 && game.playtime_forever <= 30)
@@ -129,12 +130,16 @@ export default function Homepage() {
   const [pibbleMode, setPibbleMode] = useState(false)
   const [totalErroredGames, setTotalErroredGames] = useState(0)
 
+
+
+  // ----- HELPER FUNCTIONS -----
+
   // Returns random object in array
-  function GetRandom(items: any[]) {
+  function GetRandomFromArray(items: any[]) {
     return items[Math.floor(Math.random() * items.length)]
   }
 
-  // Returns appropriate color for progress bars
+  // Returns hex color for inputs between 0-100
   function GetProgressColor(score: number) {
     if (score < 10) return "#FF0000FF"
     if (score < 20) return "#F03C03FF"
@@ -147,6 +152,84 @@ export default function Homepage() {
     if (score < 90) return "#898E0FFF"
     if (score < 100) return "#639911FF"
     else return "#00C217FF"
+  }
+
+
+
+  // ----- Game Array Functions -----
+
+  // Gets owned games, covers, achievements, game details, recently played
+  async function FetchSteamGames(steamid: string) {
+    setPrivacyError(false)
+
+    // Fetch owned games from steamid
+    setLoadingMessage("Getting Games")
+    const tempOwnedGames = await fetch('/api/GetOwnedGames', {
+      method: "POST",
+      body: JSON.stringify({ id: steamid })
+    })
+    const ownedGames = await tempOwnedGames.json()
+    console.log("User Owned Games: ", ownedGames)
+
+    // Check if user games are available and playtime can be viewed. Account privacy settings might be private
+    if (!ownedGames.game_count || ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
+      console.log("Get Owned Games API: no games visible")
+      setPrivacyError(true)
+      setLoadingMessage("")
+      return
+    }
+    // Unable to fetch account/games in the first place
+    if (ownedGames.error) {
+      router.push("/")
+    }
+
+
+    // Fetch detailed game data from steam spy
+    setLoadingMessage("Getting Game Specific Details (genres, price, global average playtime, etc)")
+    const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
+      method: "POST",
+      body: JSON.stringify({ gameData: ownedGames })
+    })
+    type SteamSpyResponse = Record<string, Record<string, any>>
+    const steamSpyData = await tempDetailedGameData.json() as SteamSpyResponse
+    console.log("Steam Spy Game Data: ", steamSpyData)
+
+    if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
+      setErrorHeader(true)
+    }
+
+
+    // Fetch owned game covers
+    setLoadingMessage("Getting Game Covers")
+    const tempGameCovers = await fetch('/api/GetSteamCovers', {
+      method: "POST",
+      body: JSON.stringify({ gameData: ownedGames })
+    })
+    const gameCovers = await tempGameCovers.json()
+    console.log("Game Covers: ", gameCovers)
+
+
+    // Fetch owned games from userID
+    setLoadingMessage("Getting User Achievements")
+    const tempUserAchievements = await fetch('/api/GetPlayerAchievements', {
+      method: "POST",
+      body: JSON.stringify({ id: steamid, gameData: ownedGames })
+    })
+    const userAchievements = await tempUserAchievements.json()
+    console.log("User Achievements: ", userAchievements)
+
+
+    // Fetch recently played
+    setLoadingMessage("Getting Recently Played Games")
+    const tempRecentlyPlayed = await fetch('/api/GetRecentlyPlayed', {
+      method: "POST",
+      body: JSON.stringify({ id: steamid })
+    })
+    // Save the returned data
+    const recentlyPlayed = await tempRecentlyPlayed.json()
+    console.log("Recently Played: ", recentlyPlayed)
+
+    return { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers }
   }
 
   // Calculate a score of how much a user has completed their game
@@ -181,77 +264,6 @@ export default function Homepage() {
     return (Math.round(totalScore * 100))
   }
 
-  // Gets owned games, covers, achievements, game details, recently played
-  async function FetchSteamGames(steamid: string) {
-    setPrivacyError(false)
-    // Fetch owned games from steamid
-    setLoadingMessage("Getting Games")
-    const tempOwnedGames = await fetch('/api/GetOwnedGames', {
-      method: "POST",
-      body: JSON.stringify({ id: steamid })
-    })
-    const ownedGames = await tempOwnedGames.json()
-    console.log("User Owned Games: ", ownedGames)
-
-    // Check if user games are available and playtime can be viewed. Account privacy settings might be private
-    if (!ownedGames.game_count || ownedGames.game_count > 0 && ownedGames.games.every(((game: any) => game.playtime_forever == 0))) {
-      console.log("Get Owned Games API: no games visible")
-      setPrivacyError(true)
-      setLoadingMessage("")
-      return
-    }
-    // Unable to fetch account/games in the first place
-    if (ownedGames.error) {
-      router.push("/")
-    }
-
-    // Fetch in depth data from steam spy
-    setLoadingMessage("Getting Game Specific Details (genres, price, global average playtime, etc)")
-    const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
-      method: "POST",
-      body: JSON.stringify({ gameData: ownedGames })
-    })
-    type SteamSpyResponse = Record<string, Record<string, any>>
-    const steamSpyData = await tempDetailedGameData.json() as SteamSpyResponse
-    console.log("Steam Spy Game Data: ", steamSpyData)
-
-    if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
-      setErrorHeader(true)
-    }
-
-    // Fetch owned game covers
-    setLoadingMessage("Getting Game Covers")
-    const tempGameCovers = await fetch('/api/GetSteamCovers', {
-      method: "POST",
-      body: JSON.stringify({ gameData: ownedGames })
-    })
-    const gameCovers = await tempGameCovers.json()
-    console.log("Game Covers: ", gameCovers)
-
-    // Fetch owned games from userID
-    setLoadingMessage("Getting User Achievements")
-    const tempUserAchievements = await fetch('/api/GetPlayerAchievements', {
-      method: "POST",
-      body: JSON.stringify({ id: steamid, gameData: ownedGames })
-    })
-
-    const userAchievements = await tempUserAchievements.json()
-    console.log("User Achievements: ", userAchievements)
-
-    // Fetch recently played
-    setLoadingMessage("Getting Recently Played Games")
-    const tempRecentlyPlayed = await fetch('/api/GetRecentlyPlayed', {
-      method: "POST",
-      body: JSON.stringify({ id: steamid })
-    })
-
-    // Save the returned data
-    const recentlyPlayed = await tempRecentlyPlayed.json()
-    console.log("Recently Played: ", recentlyPlayed)
-
-    return { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers }
-  }
-
   // Combine various game data into a single list of objects
   async function CombineGameData(ownedGames: any, userAchievements: any, steamSpyData: any, recentlyPlayed: any, gameCovers: any) {
     const combinedData = ownedGames.games.map((currentGame: any) => {
@@ -284,6 +296,7 @@ export default function Homepage() {
         unlockedAchievementsCount ?? 0,
       )
 
+      // Returns array for each game including the following attributes
       return {
         ...currentGame,
         global_average_playtime: matchDetailedGameData?.average_forever ?? -1,
@@ -328,23 +341,16 @@ export default function Homepage() {
     }
   }
 
-  async function GetUserDetails(steamid: string) {
-    // Fetch user summary from steamid
-    const tempUserSummary = await fetch('./api/GetPlayerSummary', {
-      method: "POST",
-      body: JSON.stringify({ id: steamid })
-    })
-    const summary = await tempUserSummary.json()
-    setUserSummary(summary.players[0])
-    console.log("User Summary: ", summary.players[0])
-  }
+
+
+  // ----- BMO Functions -----
 
   // Selects appropriate face ids and emotions depending on account score
   function GetBmoState() {
     if (accountScore == 0) {
       // Face Object IDs and Emotion Responses
       let possibleEmotions = ["Battery Low... Shutdown"]
-      setEmotion(GetRandom(possibleEmotions))
+      setEmotion(GetRandomFromArray(possibleEmotions))
       return bmoFaceIDs.dead
 
     } else if (accountScore > 0 && accountScore < 20) {
@@ -352,48 +358,48 @@ export default function Homepage() {
       let objectFaceIDs = [bmoFaceIDs.sad_2, bmoFaceIDs.sad_3, bmoFaceIDs.sad_4, bmoFaceIDs.sad_5]
       let possibleEmotions = ["I think I am dying. But that's okay, BMO always bounces back!", "BMO is not feeling well..."]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
 
     } else if (accountScore >= 20 && accountScore < 40) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = [bmoFaceIDs.upset_1, bmoFaceIDs.upset_2, bmoFaceIDs.suspicious_1]
       let possibleEmotions = ["I am not talking to you right now...", "What the flip!", "This is bad biscuts", "Ice King would treat me better than this >:("]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
 
     } else if (accountScore >= 40 && accountScore < 60) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = [bmoFaceIDs.mild, bmoFaceIDs.sad_1, bmoFaceIDs.tired]
       let possibleEmotions = ["What the Stuff!", "Oh my glob", "Adventure Time!"]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
 
     } else if (accountScore >= 60 && accountScore < 80) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = [bmoFaceIDs.blush_1, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_1, bmoFaceIDs.suspicious_2]
       let possibleEmotions = ["This does compute!", "This is all Bloobalooby"]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
 
     } else if (accountScore >= 80 && accountScore < 100) {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = [bmoFaceIDs.blush_2, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4]
       let possibleEmotions = ["Who wants to play video games?"]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
 
     } else {
       // Face Object IDs and Emotion Responses
       let objectFaceIDs = [bmoFaceIDs.heart_eyes, bmoFaceIDs.star_eyes_1, bmoFaceIDs.star_eyes_2]
       let possibleEmotions = ["This is Mathematical", "Algebraic", "Check Please!"]
 
-      setEmotion(GetRandom(possibleEmotions))
-      return GetRandom(objectFaceIDs)
+      setEmotion(GetRandomFromArray(possibleEmotions))
+      return GetRandomFromArray(objectFaceIDs)
     }
   }
 
@@ -437,11 +443,11 @@ export default function Homepage() {
     if (canInteract.current) {
       canInteract.current = false
       SetBmoFace(bmoFaceIDs.happy_3)
-      setBmoMessage(GetRandom(bmoLoadingMessage))
+      setBmoMessage(GetRandomFromArray(bmoLoadingMessage))
       setTimeout(() => {
         let message = ""
-        let randomGame = GetRandom(allGameData)
-        let randomTime = GetRandom(["", " for 15 minutes", " for 30 minutes"])
+        let randomGame = GetRandomFromArray(allGameData)
+        let randomTime = GetRandomFromArray(["", " for 15 minutes", " for 30 minutes"])
 
         message += `You should play ${randomGame.name}${randomTime}.`
 
@@ -473,7 +479,7 @@ export default function Homepage() {
         }
 
         // Change BMO's face and message
-        SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
+        SetBmoFace(GetRandomFromArray([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
         setBmoMessage(message)
         canInteract.current = true
       }, 1000)
@@ -485,10 +491,10 @@ export default function Homepage() {
     if (canInteract.current) {
       canInteract.current = false
       SetBmoFace(bmoFaceIDs.happy_3)
-      setBmoMessage(GetRandom(bmoLoadingMessage))
+      setBmoMessage(GetRandomFromArray(bmoLoadingMessage))
 
       setTimeout(() => {
-        setBmoMessage(GetRandom(bmoLoadingMessage))
+        setBmoMessage(GetRandomFromArray(bmoLoadingMessage))
         setTimeout(() => {
           let challenges = ["Play 3 different games today", "Unlock 1 achievement in any game", "Play a game outside of your usual genre", "Play a challenging game", "Play a game a friend (or someone online) has recomended", "Get a game from your wishlist", "Play a game from the Free To Play category on Steam", "Play an old favorite"]
 
@@ -499,7 +505,7 @@ export default function Homepage() {
 
           // Up a specific game score
           if (allGameData.filter(game => game.score < 100).length > 0) {
-            let randomGame = GetRandom(allGameData.filter(game => game.score < 100))
+            let randomGame = GetRandomFromArray(allGameData.filter(game => game.score < 100))
             challenges.push(`Try to get the score for ${randomGame.name} up to ${Math.floor(randomGame.score / 5) * 5 + 5}`)
           }
 
@@ -515,13 +521,13 @@ export default function Homepage() {
 
           // play a game that is almost complete
           if (almostCompleteGameData.length > 0) {
-            // let randomGame = GetRandom(almostCompleteGameData)
+            // let randomGame = GetRandomFromArray(almostCompleteGameData)
             challenges.push(`Finish a game from the Almost Complete category`)
           }
 
           // Change BMO's face and message
-          SetBmoFace(GetRandom([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
-          setBmoMessage(GetRandom(challenges))
+          SetBmoFace(GetRandomFromArray([bmoFaceIDs.blush_1, bmoFaceIDs.blush_2, bmoFaceIDs.tongue_out, bmoFaceIDs.happy_2, bmoFaceIDs.happy_4, bmoFaceIDs.happy_5, bmoFaceIDs.heart_eyes]))
+          setBmoMessage(GetRandomFromArray(challenges))
           canInteract.current = true
         }, 1000)
       }, 800)
@@ -558,6 +564,11 @@ export default function Homepage() {
     }
   }
 
+
+
+  // ----- Category Table -----
+
+  // Helper sorting function for category table
   type SortConfig<T> = {
     key: keyof T
     direction: 'ascending' | 'descending'
@@ -789,6 +800,10 @@ export default function Homepage() {
     )
   })
 
+
+
+  // ----- Main -----
+
   // Run all apis for user info and game data
   const FetchAllData = async () => {
     if (!steamid) {
@@ -796,7 +811,14 @@ export default function Homepage() {
     }
 
     setLoadingMessage("Getting User Details")
-    await GetUserDetails(steamid)
+    // Fetch user summary from steamid
+    const tempUserSummary = await fetch('./api/GetPlayerSummary', {
+      method: "POST",
+      body: JSON.stringify({ id: steamid })
+    })
+    const summary = await tempUserSummary.json()
+    setUserSummary(summary.players[0])
+    console.log("User Summary: ", summary.players[0])
 
     // Get steam games and check if null
     const result = await FetchSteamGames(steamid)
@@ -809,8 +831,8 @@ export default function Homepage() {
     const { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers } = result
     await CombineGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
 
+    // Calculate estimated account cost
     let tempGameSum = 0
-
     for (const obj of Object.values(steamSpyData)) {
       if (obj.initialprice != null) {
         tempGameSum += Number(obj.initialprice)
