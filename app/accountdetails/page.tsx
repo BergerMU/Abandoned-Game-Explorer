@@ -186,12 +186,12 @@ export default function Homepage() {
 
     // Fetch detailed game data from steam spy
     setLoadingMessage("Getting Game Specific Details (genres, price, global average playtime, etc)")
-    const tempSteamSpyeData = await fetch('/api/GetSteamSpyData', {
+    const tempSteamSpyData = await fetch('/api/GetSteamSpyData', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
     })
     type SteamSpyResponse = Record<string, Record<string, any>>
-    const steamSpyData = await tempSteamSpyeData.json() as SteamSpyResponse
+    const steamSpyData = await tempSteamSpyData.json() as SteamSpyResponse
     console.log("Steam Spy Game Data: ", steamSpyData)
 
     if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
@@ -209,7 +209,7 @@ export default function Homepage() {
     console.log("Game Covers: ", gameCovers)
 
 
-    // Fetch owned games from userID
+    // Fetch user achievements
     setLoadingMessage("Getting User Achievements")
     const tempUserAchievements = await fetch('/api/GetPlayerAchievements', {
       method: "POST",
@@ -268,7 +268,7 @@ export default function Homepage() {
   async function ProcessGameData(ownedGames: any, userAchievements: any, steamSpyData: any, recentlyPlayed: any, gameCovers: any) {
     const combinedData = ownedGames.games.map((currentGame: any) => {
       // Specific Game details
-      const matchSteamSpyeData = steamSpyData.find((item: any) => item.appid === currentGame.appid)
+      const matchSteamSpyData = steamSpyData.find((item: any) => item.appid === currentGame.appid)
       const matchCover = gameCovers.find((item: any) => item.appid === currentGame.appid)
       // Achievements avariables
       const matchAchievements = userAchievements.find((item: any) => item.appid === currentGame.appid)
@@ -292,7 +292,7 @@ export default function Homepage() {
       // Calculate Game Score
       const score = CalculateGameScore(
         currentGame.playtime_forever ?? -1,
-        matchSteamSpyeData?.median_forever ?? -1,
+        matchSteamSpyData?.median_forever ?? -1,
         totalAchievements,
         unlockedAchievementsCount ?? 0,
       )
@@ -301,8 +301,8 @@ export default function Homepage() {
       // Returns array for each game including the following attributes
       return {
         ...currentGame,
-        global_average_playtime: matchSteamSpyeData?.average_forever ?? -1,
-        global_median_playtime: matchSteamSpyeData?.median_forever ?? -1,
+        global_average_playtime: matchSteamSpyData?.average_forever ?? -1,
+        global_median_playtime: matchSteamSpyData?.median_forever ?? -1,
         total_achievements: totalAchievements,
         unlocked_achievements_count: unlockedAchievementsCount,
         percent_of_achievements: totalAchievements > 0 ? Math.round((unlockedAchievementsCount / totalAchievements) * 100) : 0,
@@ -316,6 +316,7 @@ export default function Homepage() {
     setAllGameData(combinedData)
     console.log("Combined Game Data: ", combinedData)
 
+      // Count errored games
     let tempAccountScore = 0
     let totalValidGames = 0
     let erroredGames = 0
@@ -327,7 +328,6 @@ export default function Homepage() {
         totalValidGames += 1
       }
 
-      // Count errored games
       if (obj.score == -1) {
         erroredGames += 1
       }
@@ -335,7 +335,7 @@ export default function Homepage() {
 
     setTotalErroredGames(erroredGames)
 
-    // Accounts for division by zero errors
+    // Makes sure there isn't division by zero errors
     if (combinedData.length > 0) {
       setAccountScore(Math.round(tempAccountScore / totalValidGames))
     } else {
@@ -346,6 +346,27 @@ export default function Homepage() {
 
 
   // ----- BMO Functions -----
+
+  // Set global spline scene, bmo object, and face object
+  function LoadBmo(spline: Application) {
+    splineScene.current = spline
+    bmoParent.current = spline.findObjectByName("BMO_Parent")
+    SetBmoFace(GetBmoState())
+  }
+
+  // Reset current face and show new one
+  function SetBmoFace(newFace: string) {
+    if (!splineScene.current) return
+
+    if (bmoFace.current) {
+      bmoFace.current.position.z -= 600
+    }
+
+    bmoFace.current = splineScene.current.findObjectById(newFace)
+
+    if (!bmoFace.current) return
+    bmoFace.current.position.z += 600
+  }
 
   // Selects appropriate face ids and emotions depending on account score
   function GetBmoState() {
@@ -403,27 +424,6 @@ export default function Homepage() {
       setEmotion(GetRandomFromArray(possibleEmotions))
       return GetRandomFromArray(objectFaceIDs)
     }
-  }
-
-  // Reset current face and show new one
-  function SetBmoFace(newFace: string) {
-    if (!splineScene.current) return
-
-    if (bmoFace.current) {
-      bmoFace.current.position.z -= 600
-    }
-
-    bmoFace.current = splineScene.current.findObjectById(newFace)
-
-    if (!bmoFace.current) return
-    bmoFace.current.position.z += 600
-  }
-
-  // Set global spline scene, bmo object, and face object
-  function LoadBmo(spline: Application) {
-    splineScene.current = spline
-    bmoParent.current = spline.findObjectByName("BMO_Parent")
-    SetBmoFace(GetBmoState())
   }
 
   // Randomly change bmo face and advice
