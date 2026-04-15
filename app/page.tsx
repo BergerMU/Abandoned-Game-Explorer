@@ -9,7 +9,6 @@ export default function HomePage() {
   const router = useRouter()
   const [userInput, setUserInput] = useState("")
   const [searchError, setSearchError] = useState("")
-  const [pibbleMessage, setPibbleMessage] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // Get userid and redirect to account details page
@@ -23,6 +22,10 @@ export default function HomePage() {
     if (userInput.toLowerCase().includes("i am pibble")) {
       router.push(`/?pibble=activated`)
     }
+
+
+
+    // ----- Getting User Input -----
 
     // Parse steam accounts with ID in their url for their username or steamid
     if (userInput.includes("steamcommunity.com/id/")) {
@@ -43,6 +46,10 @@ export default function HomePage() {
       parsedUserInput = userInput
       console.log("raw user input:", userInput)
     }
+
+
+
+    // ----- Test if user input/parsed URL is valid -----
 
     // Test if input is a valid username
     const tempUserID = await fetch('/api/GetUserID', {
@@ -127,7 +134,7 @@ export default function HomePage() {
         </div>
       )}
       <p className='text-2xl'>Watch a Walkthrough</p>
-      <Video src={video_walkthrough} style={{ maxWidth: "38rem"}} minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png"/>
+      <Video src={video_walkthrough} style={{ maxWidth: "38rem" }} minResolution="720p" poster="assets/Abandoned Games Walkthrough Thumbnail.png" />
     </div>
   )
 }

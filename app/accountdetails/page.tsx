@@ -186,12 +186,12 @@ export default function Homepage() {
 
     // Fetch detailed game data from steam spy
     setLoadingMessage("Getting Game Specific Details (genres, price, global average playtime, etc)")
-    const tempDetailedGameData = await fetch('/api/GetSteamSpyData', {
+    const tempSteamSpyeData = await fetch('/api/GetSteamSpyData', {
       method: "POST",
       body: JSON.stringify({ gameData: ownedGames })
     })
     type SteamSpyResponse = Record<string, Record<string, any>>
-    const steamSpyData = await tempDetailedGameData.json() as SteamSpyResponse
+    const steamSpyData = await tempSteamSpyeData.json() as SteamSpyResponse
     console.log("Steam Spy Game Data: ", steamSpyData)
 
     if (Object.values(steamSpyData).some(obj => !Object.keys(obj).length)) {
@@ -264,17 +264,17 @@ export default function Homepage() {
     return (Math.round(totalScore * 100))
   }
 
-  // Combine various game data into a single list of objects
-  async function CombineGameData(ownedGames: any, userAchievements: any, steamSpyData: any, recentlyPlayed: any, gameCovers: any) {
+  // Output array including detailed game data and count any errored games
+  async function ProcessGameData(ownedGames: any, userAchievements: any, steamSpyData: any, recentlyPlayed: any, gameCovers: any) {
     const combinedData = ownedGames.games.map((currentGame: any) => {
       // Specific Game details
-      const matchDetailedGameData = steamSpyData.find((item: any) => item.appid === currentGame.appid)
+      const matchSteamSpyeData = steamSpyData.find((item: any) => item.appid === currentGame.appid)
       const matchCover = gameCovers.find((item: any) => item.appid === currentGame.appid)
-
       // Achievements avariables
       const matchAchievements = userAchievements.find((item: any) => item.appid === currentGame.appid)
       const totalAchievements = matchAchievements?.total_achievements ?? 0
       const unlockedAchievementsCount = matchAchievements?.achievements ? matchAchievements?.achievements.length : 0
+
 
       // Determine if game has been played within two weeks
       let isPlayedWithinTwoWeeks: boolean
@@ -288,19 +288,21 @@ export default function Homepage() {
         isPlayedWithinTwoWeeks = false
       }
 
+
       // Calculate Game Score
       const score = CalculateGameScore(
         currentGame.playtime_forever ?? -1,
-        matchDetailedGameData?.median_forever ?? -1,
-        totalAchievements ?? 0,
+        matchSteamSpyeData?.median_forever ?? -1,
+        totalAchievements,
         unlockedAchievementsCount ?? 0,
       )
+
 
       // Returns array for each game including the following attributes
       return {
         ...currentGame,
-        global_average_playtime: matchDetailedGameData?.average_forever ?? -1,
-        global_median_playtime: matchDetailedGameData?.median_forever ?? -1,
+        global_average_playtime: matchSteamSpyeData?.average_forever ?? -1,
+        global_median_playtime: matchSteamSpyeData?.median_forever ?? -1,
         total_achievements: totalAchievements,
         unlocked_achievements_count: unlockedAchievementsCount,
         percent_of_achievements: totalAchievements > 0 ? Math.round((unlockedAchievementsCount / totalAchievements) * 100) : 0,
@@ -829,7 +831,7 @@ export default function Homepage() {
     // Concat data
     setLoadingMessage("Interpreting Data")
     const { ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers } = result
-    await CombineGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
+    await ProcessGameData(ownedGames, userAchievements, steamSpyData, recentlyPlayed, gameCovers)
 
     // Calculate estimated account cost
     let tempGameSum = 0
